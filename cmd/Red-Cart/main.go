@@ -8,10 +8,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/Red-Sock/Red-Cart/internal/clients/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	telegramserver "github.com/Red-Sock/Red-Cart/internal/transport/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/utils/closer"
-	//_transport_imports
-	"github.com/Red-Sock/Red-Cart/cmd/Red-Cart/bootstrap"
 )
 
 func main() {
@@ -29,19 +29,21 @@ func main() {
 		logrus.Fatalf("error extracting startup duration %s", err)
 	}
 	ctx, cancel := context.WithTimeout(ctx, startupDuration)
+
 	closer.Add(func() error {
 		cancel()
 		return nil
 	})
 
-	stopFunc, err := bootstrap.ApiEntryPoint(ctx, cfg)
+	tg := telegramserver.NewServer(cfg, telegram.New(cfg))
+	err = tg.Start(ctx)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("error starting telegram server %s", err)
 	}
 
 	waitingForTheEnd()
 
-	err = stopFunc(context.Background())
+	err = tg.Stop(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
