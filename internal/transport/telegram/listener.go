@@ -22,7 +22,7 @@ func NewServer(cfg *config.Config, bot *client.Bot) (s *Server) {
 	{
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
-		s.bot.AddCommandHandler(welcome.New(cfg))
+		s.bot.AddCommandHandler(welcome.New())
 
 	}
 
