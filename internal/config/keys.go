@@ -8,4 +8,5 @@ const (
 	AppInfoName            = "app_info_name"
 	AppInfoStartupDuration = "app_info_startup_duration"
 	AppInfoVersion         = "app_info_version"
+	ServerTelegramApikey   = "server_telegram_api_key"
 )
