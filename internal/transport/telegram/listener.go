@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/welcome"
 
 	"github.com/Red-Sock/go_tg/client"
 
@@ -21,6 +22,7 @@ func NewServer(cfg *config.Config, bot *client.Bot) (s *Server) {
 	{
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
+		s.bot.AddCommandHandler(welcome.New(cfg))
 
 	}
 
