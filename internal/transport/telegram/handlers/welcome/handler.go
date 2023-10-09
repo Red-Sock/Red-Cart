@@ -1,6 +1,7 @@
 package welcome
 
 import (
+	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
@@ -9,6 +10,13 @@ import (
 const Command = "/welcome"
 
 type Handler struct {
+	userSrv service.UserService
+}
+
+func New(userSrv service.UserService) *Handler {
+	return &Handler{
+		userSrv: userSrv,
+	}
 }
 
 func (h *Handler) GetDescription() string {
@@ -19,10 +27,7 @@ func (h *Handler) GetCommand() string {
 	return Command
 }
 
-func New() *Handler {
-	return &Handler{}
-}
-
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	out.SendMessage(response.NewMessage("Hello user!"))
+
+	out.SendMessage(response.NewMessage(h.userSrv.Start(in.From.ID)))
 }

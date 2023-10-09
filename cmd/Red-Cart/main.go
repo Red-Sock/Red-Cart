@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
+	"github.com/Red-Sock/Red-Cart/internal/service/user"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,8 +36,10 @@ func main() {
 		cancel()
 		return nil
 	})
+	userData := inmemory.New()
+	userService := user.New(userData)
 
-	tg := telegramserver.NewServer(cfg, telegram.New(cfg))
+	tg := telegramserver.NewServer(cfg, telegram.New(cfg), userService)
 	err = tg.Start(ctx)
 	if err != nil {
 		logrus.Fatalf("error starting telegram server %s", err)
