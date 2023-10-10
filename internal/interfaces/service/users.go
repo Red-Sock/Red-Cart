@@ -1,5 +1,5 @@
 package service
 
 type UserService interface {
-	Start(id int64) (message string)
+	Start(id int64) (message string, err error)
 }

@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
+
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
-	"log"
 )
 
 type UsersService struct {
@@ -12,26 +12,25 @@ type UsersService struct {
 }
 
 func New(uD data.Users) *UsersService {
-
 	return &UsersService{
 		userData: uD,
 	}
 }
 
-func (u *UsersService) Start(id int64) (message string) {
+func (u *UsersService) Start(id int64) (message string, err error) {
 	user, err := u.userData.Get(u.ctx, id)
 	if err != nil {
-		//TODO обработка ошибки
+		return "", err
 	}
 
 	if user.Id != 0 {
-		return "Welcome Back!"
+		return "Welcome Back!", nil
 	}
 	user.Id = id
-	err = u.userData.Add(u.ctx, user)
+	err = u.userData.Upsert(u.ctx, user)
 
 	if err != nil {
-		log.Fatal("ошибка добавления пользователя: ", err)
+		return "", err
 	}
-	return "Hello New User!"
+	return "Hello New User!", nil
 }

@@ -2,6 +2,7 @@ package inmemory
 
 import (
 	"context"
+
 	"github.com/Red-Sock/Red-Cart/internal/domain/user"
 )
 
@@ -15,7 +16,7 @@ func New() *Users {
 	}
 }
 
-func (u *Users) Add(ctx context.Context, user user.User) error {
+func (u *Users) Upsert(ctx context.Context, user user.User) error {
 
 	u.m[user.Id] = user
 	return nil

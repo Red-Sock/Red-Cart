@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
-	"github.com/Red-Sock/Red-Cart/internal/service/user"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
+	"github.com/Red-Sock/Red-Cart/internal/service/user"
 
 	"github.com/sirupsen/logrus"
 

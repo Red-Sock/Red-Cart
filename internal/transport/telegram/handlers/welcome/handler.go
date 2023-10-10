@@ -1,13 +1,14 @@
 package welcome
 
 import (
-	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+
+	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
-const Command = "/welcome"
+const Command = "/start"
 
 type Handler struct {
 	userSrv service.UserService
@@ -28,6 +29,9 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-
-	out.SendMessage(response.NewMessage(h.userSrv.Start(in.From.ID)))
+	startMessage, err := h.userSrv.Start(in.From.ID)
+	if err != nil {
+		//TODO Куда тут выносить?
+	}
+	out.SendMessage(response.NewMessage(startMessage))
 }
