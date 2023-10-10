@@ -31,7 +31,8 @@ func (h *Handler) GetCommand() string {
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	startMessage, err := h.userSrv.Start(in.From.ID)
 	if err != nil {
-		//TODO Куда тут выносить?
+		out.SendMessage(response.NewMessage(err.Error()))
+		return
 	}
 	out.SendMessage(response.NewMessage(startMessage))
 }

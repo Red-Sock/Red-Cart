@@ -6,13 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
-	"github.com/Red-Sock/Red-Cart/internal/service/user"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/Red-Sock/Red-Cart/internal/clients/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
+	"github.com/Red-Sock/Red-Cart/internal/service/user"
 	telegramserver "github.com/Red-Sock/Red-Cart/internal/transport/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/utils/closer"
 )

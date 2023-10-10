@@ -22,7 +22,7 @@ func NewServer(cfg *config.Config, bot *client.Bot, usrSrv service.UserService) 
 	}
 
 	{
-		// Upsert handlers here
+		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
 		s.bot.AddCommandHandler(welcome.New(usrSrv))
 
