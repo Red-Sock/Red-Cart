@@ -1,4 +1,4 @@
-package user
+package cart
 
 import (
 	"context"
@@ -6,16 +6,16 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
-type UsersService struct {
+type CartService struct {
 	ctx      context.Context
 	userData data.Users
 }
 
-func New() *UsersService {
-	return &UsersService{}
+func New() *CartService {
+	return &CartService{}
 }
 
-func (u *UsersService) Start(id int64) (message string, err error) {
+func (u *CartService) Start(id int64) (message string, err error) {
 	user, err := u.userData.Get(u.ctx, id)
 	if err != nil {
 		return "", err

@@ -16,7 +16,7 @@ type Server struct {
 	bot *client.Bot
 }
 
-func NewServer(cfg *config.Config, bot *client.Bot, usrSrv service.UserService) (s *Server) {
+func NewServer(cfg *config.Config, bot *client.Bot, Srv service.Service) (s *Server) {
 	s = &Server{
 		bot: bot,
 	}
@@ -24,7 +24,7 @@ func NewServer(cfg *config.Config, bot *client.Bot, usrSrv service.UserService) 
 	{
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
-		s.bot.AddCommandHandler(welcome.New(usrSrv))
+		s.bot.AddCommandHandler(welcome.New(Srv))
 
 	}
 
