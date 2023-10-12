@@ -38,6 +38,7 @@ func main() {
 	})
 
 	db := inmemory.New()
+
 	srv := service.New(db)
 
 	tg := telegramserver.NewServer(cfg, telegram.New(cfg), srv)

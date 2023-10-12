@@ -1,6 +1,6 @@
 package service
 
-type Service interface {
-	UserService
-	CartService
+type Storage interface {
+	User() UserService
+	Cart() CartService
 }

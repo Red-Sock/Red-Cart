@@ -29,7 +29,7 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	startMessage, err := h.userSrv.Start(in.From.ID)
+	startMessage, err := h.userSrv.Start(in.Ctx, in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
