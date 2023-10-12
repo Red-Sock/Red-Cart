@@ -3,6 +3,7 @@ package welcome
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
+	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -34,5 +35,11 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
-	out.SendMessage(response.NewMessage(startMessage))
+
+	msg := response.NewMessage(startMessage)
+	msg.Keys = &keyboard.InlineKeyboard{}
+
+	msg.Keys.AddButton("Создать корзину", "/create_cart")
+	msg.Keys.AddButton("Добавить товар", "/add_item")
+	out.SendMessage(msg)
 }

@@ -10,13 +10,11 @@ type Users struct {
 }
 
 func (u2 Users) Upsert(ctx context.Context, u user.User) error {
-	//TODO implement me
-	panic("implement me")
+	return nil
 }
 
 func (u2 Users) Get(ctx context.Context, id int64) (user.User, error) {
-	//TODO implement me
-	panic("implement me")
+	return user.User{}, nil
 }
 
 func NewUsers() *Users {
