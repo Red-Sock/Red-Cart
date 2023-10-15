@@ -2,33 +2,34 @@ package cart
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
-type CartService struct {
-	ctx      context.Context
-	userData data.Users
+const msgString = "Корзина c id = %d была успешно создана. Друзья могут добавить корзину через /add_item %d имя_товара_1 имя_товара_2"
+
+type CartsService struct {
+	cartsData data.Carts
 }
 
-func New() *CartService {
-	return &CartService{}
+func New(userData data.Carts) *CartsService {
+	return &CartsService{
+		cartsData: userData,
+	}
 }
 
-func (u *CartService) Start(id int64) (message string, err error) {
-	user, err := u.userData.Get(u.ctx, id)
+func (c CartsService) Create(ctx context.Context, idOwner int64) (error, string) {
+	_, err := c.cartsData.Get(ctx, idOwner)
 	if err != nil {
-		return "", err
+		return err, ""
 	}
 
-	if user.Id != 0 {
-		return "Welcome Back!", nil
-	}
-	user.Id = id
-	err = u.userData.Upsert(u.ctx, user)
+	id, err := c.cartsData.Create(ctx, idOwner)
 
 	if err != nil {
-		return "", err
+		return err, ""
 	}
-	return "Hello New User!", nil
+
+	return nil, fmt.Sprintf(msgString, id, id)
 }

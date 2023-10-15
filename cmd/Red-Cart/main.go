@@ -40,7 +40,7 @@ func main() {
 	db := inmemory.New()
 	srv := service.New(db)
 
-	tg := telegramserver.NewServer(cfg, telegram.New(cfg), srv)
+	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *srv)
 	err = tg.Start(ctx)
 	if err != nil {
 		logrus.Fatalf("error starting telegram server %s", err)

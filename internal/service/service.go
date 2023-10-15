@@ -7,20 +7,22 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/service/user"
 )
 
-type Service struct {
-	User service.UserService
-	Cart service.CartService
+type Storage struct {
+	UserService *user.UsersService
+	CartService *cart.CartsService
 }
 
-func (s Service) Start(id int64) (message string, err error) {
-	msg, err := s.User.Start(id)
-
-	return msg, err
-}
-
-func New(sD data.Service) *Service {
-	return &Service{
-		User: user.New(),
-		Cart: cart.New(),
+func New(sD data.Storage) *Storage {
+	return &Storage{
+		UserService: user.New(sD.User()),
+		CartService: cart.New(sD.Cart()),
 	}
+}
+
+func (s *Storage) User() service.UserService {
+	return s.UserService
+}
+
+func (s *Storage) Cart() service.CartService {
+	return s.CartService
 }

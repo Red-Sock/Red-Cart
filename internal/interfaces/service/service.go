@@ -1,6 +1,6 @@
 package service
 
 type Service interface {
-	UserService
-	CartService
+	User() UserService
+	Cart() CartService
 }
