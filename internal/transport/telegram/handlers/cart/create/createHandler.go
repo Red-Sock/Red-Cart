@@ -29,7 +29,7 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	err, resp := h.cartService.Create(in.Ctx, in.From.ID)
+	resp, err := h.cartService.Create(in.Ctx, in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return

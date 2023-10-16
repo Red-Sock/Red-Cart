@@ -3,6 +3,7 @@ package carts
 import (
 	"context"
 	"fmt"
+	"sync/atomic"
 
 	errors "github.com/Red-Sock/trace-errors"
 
@@ -35,8 +36,7 @@ func (c Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
 }
 
 func (c Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	//atomic.AddInt64(&idCart, 1)
-	idCart++
+	atomic.AddInt64(&idCart, 1)
 	c.m[idOwner] = cart.Cart{
 		Id:      idCart,
 		OwnerId: idOwner,

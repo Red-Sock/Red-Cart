@@ -7,7 +7,9 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
-const msgString = "Корзина c id = %d была успешно создана. Друзья могут добавить корзину через /add_item %d имя_товара_1 имя_товара_2"
+const msgString = `Корзина c id = %d была успешно создана.
+Друзья могут добавить корзину через
+/add_item %d имя_товара_1 имя_товара_2`
 
 type CartsService struct {
 	cartsData data.Carts
@@ -19,10 +21,10 @@ func New(userData data.Carts) *CartsService {
 	}
 }
 
-func (c CartsService) Create(ctx context.Context, idOwner int64) (error, string) {
+func (c CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
 	_, err := c.cartsData.Get(ctx, idOwner)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	return nil, ""
@@ -38,8 +40,8 @@ func (c CartsService) Get(ctx context.Context, idOwner int64) (error, string) {
 	id, err := c.cartsData.Create(ctx, idOwner)
 
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
-	return nil, fmt.Sprintf(msgString, id, id)
+	return fmt.Sprintf(msgString, id, id), nil
 }

@@ -3,13 +3,8 @@ package inmemory
 import (
 	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/carts"
 	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/users"
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
-
-type Carts struct {
-	m map[int64]user.User
-}
 
 type Storage struct {
 	Users *users.Users
@@ -17,7 +12,8 @@ type Storage struct {
 }
 
 func New() *Storage {
-	return &Storage{Users: users.NewUsers(),
+	return &Storage{
+		Users: users.NewUsers(),
 		Carts: carts.New()}
 }
 
