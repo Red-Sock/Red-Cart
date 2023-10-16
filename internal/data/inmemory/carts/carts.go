@@ -22,8 +22,10 @@ func New() *Carts {
 }
 
 func (c Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
+
 	cart, ok := c.m[idOwner]
 
+	//TODO переделать логику Get
 	if ok {
 		//TODO не знаю правильно ли выкидывать ошибку пользователю
 		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
@@ -33,6 +35,7 @@ func (c Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
 }
 
 func (c Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
+	//atomic.AddInt64(&idCart, 1)
 	idCart++
 	c.m[idOwner] = cart.Cart{
 		Id:      idCart,
