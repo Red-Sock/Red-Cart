@@ -2,12 +2,14 @@ package users
 
 import (
 	"context"
+	"sync"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain/user"
 )
 
 type Users struct {
-	m map[int64]user.User
+	rw sync.RWMutex
+	m  map[int64]user.User
 }
 
 func NewUsers() *Users {
@@ -17,7 +19,9 @@ func NewUsers() *Users {
 }
 
 func (u *Users) Upsert(ctx context.Context, user user.User) error {
+	u.rw.Lock()
 	u.m[user.Id] = user
+	defer u.rw.Unlock()
 	return nil
 }
 
