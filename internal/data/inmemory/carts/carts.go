@@ -3,6 +3,7 @@ package carts
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 
 	errors "github.com/Red-Sock/trace-errors"
@@ -10,10 +11,11 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
 )
 
-var idCart int64
+var idCart atomic.Int64
 
 type Carts struct {
-	m map[int64]cart.Cart
+	rw sync.RWMutex
+	m  map[int64]cart.Cart
 }
 
 func New() *Carts {
@@ -36,16 +38,18 @@ func (c Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
 }
 
 func (c Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	atomic.AddInt64(&idCart, 1)
+	idCatNew := idCart.Add(1)
+	c.rw.Lock()
+	defer c.rw.Unlock()
 	c.m[idOwner] = cart.Cart{
-		Id:      idCart,
+		Id:      idCatNew,
 		OwnerId: idOwner,
 		Url:     "",
 	}
-	return idCart, nil
+	return idCatNew, nil
 }
 
 func (c Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {
 	//TODO в рамках RC-11
-	panic("implement me")
+	return cart.Cart{}, errors.New("not implemented")
 }
