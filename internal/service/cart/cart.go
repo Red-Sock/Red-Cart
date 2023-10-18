@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	errors "github.com/Red-Sock/trace-errors"
+
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
@@ -30,7 +32,7 @@ func (c CartsService) Create(ctx context.Context, idOwner int64) (string, error)
 	id, err := c.cartsData.Create(ctx, idOwner)
 
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "error Creating cart")
 	}
 
 	return fmt.Sprintf(msgString, id, id), nil
