@@ -11,11 +11,10 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
 )
 
-var idCart atomic.Int64
-
 type Carts struct {
-	rw sync.RWMutex
-	m  map[int64]cart.Cart
+	idCart atomic.Int64
+	rw     sync.RWMutex
+	m      map[int64]cart.Cart
 }
 
 func New() *Carts {
@@ -24,21 +23,21 @@ func New() *Carts {
 	}
 }
 
-func (c Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
-
+func (c *Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
+	c.rw.RLock()
 	cart, ok := c.m[idOwner]
 
 	//TODO переделать логику Get
 	if ok {
-		//TODO не знаю правильно ли выкидывать ошибку пользователю
 		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
 		return c.m[idOwner], errors.New(msg)
 	}
+	c.rw.RUnlock()
 	return c.m[idOwner], nil
 }
 
-func (c Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	idCatNew := idCart.Add(1)
+func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
+	idCatNew := c.idCart.Add(1)
 	c.rw.Lock()
 	defer c.rw.Unlock()
 	c.m[idOwner] = cart.Cart{
@@ -49,7 +48,7 @@ func (c Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) 
 	return idCatNew, nil
 }
 
-func (c Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {
+func (c *Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {
 	//TODO в рамках RC-11
 	return cart.Cart{}, errors.New("not implemented")
 }
