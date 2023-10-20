@@ -17,6 +17,7 @@ type Carts struct {
 	m      map[int64]cart.Cart
 }
 
+// Точно не пустой!
 func New() *Carts {
 	return &Carts{
 		m: make(map[int64]cart.Cart),
@@ -25,6 +26,7 @@ func New() *Carts {
 
 func (c *Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
 	c.rw.RLock()
+	defer c.rw.RUnlock()
 	cart, ok := c.m[idOwner]
 
 	//TODO переделать логику Get
@@ -32,7 +34,7 @@ func (c *Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
 		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
 		return c.m[idOwner], errors.New(msg)
 	}
-	c.rw.RUnlock()
+
 	return c.m[idOwner], nil
 }
 
