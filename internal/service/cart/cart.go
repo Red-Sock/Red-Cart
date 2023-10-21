@@ -29,14 +29,14 @@ func (c CartsService) Create(ctx context.Context, idOwner int64) (string, error)
 		return "", err
 	}
 
-	return nil, ""
+	return "", nil
 }
 
-func (c CartsService) Get(ctx context.Context, idOwner int64) (error, string) {
+func (c CartsService) Get(ctx context.Context, idOwner int64) (string, error) {
 	//TODO переделать обработку ошибки
 	_, err := c.cartsData.Get(ctx, idOwner)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 
 	id, err := c.cartsData.Create(ctx, idOwner)
