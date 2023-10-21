@@ -7,7 +7,6 @@ import (
 )
 
 type UsersService struct {
-	ctx      context.Context
 	userData data.Users
 }
 
@@ -17,8 +16,8 @@ func New(uD data.Users) *UsersService {
 	}
 }
 
-func (u *UsersService) Start(id int64) (message string, err error) {
-	user, err := u.userData.Get(u.ctx, id)
+func (u *UsersService) Start(ctx context.Context, id int64) (message string, err error) {
+	user, err := u.userData.Get(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +26,7 @@ func (u *UsersService) Start(id int64) (message string, err error) {
 		return "Welcome Back!", nil
 	}
 	user.Id = id
-	err = u.userData.Upsert(u.ctx, user)
+	err = u.userData.Upsert(ctx, user)
 
 	if err != nil {
 		return "", err

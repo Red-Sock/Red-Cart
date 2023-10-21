@@ -1,28 +1,27 @@
-package welcome
+package cart
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
-	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
-const Command = "/start"
+const Command = "/create_cart"
 
 type Handler struct {
-	userSrv service.UserService
+	cartService service.CartService
 }
 
-func New(userSrv service.UserService) *Handler {
+func New(service service.CartService) *Handler {
 	return &Handler{
-		userSrv: userSrv,
+		cartService: service,
 	}
 }
 
 func (h *Handler) GetDescription() string {
-	return "returns just hello"
+	return "create Cart"
 }
 
 func (h *Handler) GetCommand() string {
@@ -30,16 +29,11 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	startMessage, err := h.userSrv.Start(in.Ctx, in.From.ID)
+	resp, err := h.cartService.Create(in.Ctx, in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
-
-	msg := response.NewMessage(startMessage)
-	msg.Keys = &keyboard.InlineKeyboard{}
-
-	msg.Keys.AddButton("Создать корзину", "/create_cart")
-	msg.Keys.AddButton("Добавить товар", "/add_item")
+	msg := response.NewMessage(resp)
 	out.SendMessage(msg)
 }

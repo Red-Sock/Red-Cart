@@ -14,18 +14,18 @@ type Handler struct {
 	version string
 }
 
+func New(cfg *config.Config) *Handler {
+	return &Handler{
+		version: cfg.GetString(config.AppInfoVersion),
+	}
+}
+
 func (h *Handler) GetDescription() string {
 	return "returns current app version as a response"
 }
 
 func (h *Handler) GetCommand() string {
 	return Command
-}
-
-func New(cfg *config.Config) *Handler {
-	return &Handler{
-		version: cfg.GetString(config.AppInfoVersion),
-	}
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {

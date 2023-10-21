@@ -1,28 +1,26 @@
 package inmemory
 
 import (
-	"context"
-
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/carts"
+	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/users"
+	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
-type Users struct {
-	m map[int64]user.User
+type Storage struct {
+	Users *users.Users
+	Carts *carts.Carts
 }
 
-func New() *Users {
-	return &Users{
-		m: make(map[int64]user.User),
-	}
+func New() *Storage {
+	return &Storage{
+		Users: users.NewUsers(),
+		Carts: carts.New()}
 }
 
-func (u *Users) Upsert(ctx context.Context, user user.User) error {
-
-	u.m[user.Id] = user
-	return nil
+func (s *Storage) User() data.Users {
+	return s.Users
 }
 
-func (u *Users) Get(ctx context.Context, id int64) (user.User, error) {
-
-	return u.m[id], nil
+func (s *Storage) Cart() data.Carts {
+	return s.Carts
 }
