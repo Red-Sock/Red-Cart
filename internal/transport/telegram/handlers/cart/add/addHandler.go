@@ -1,6 +1,7 @@
 package add
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -57,6 +58,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	}
 	_, err := h.cartService.GetByCartId(in.Ctx, id)
 	if err != nil {
+		outMsg = fmt.Sprintf("Корзины с id = %d  не существует", id)
 		out.SendMessage(response.NewMessage(outMsg))
 		return
 	}

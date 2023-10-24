@@ -17,16 +17,6 @@ type Carts struct {
 	ownerMap  map[int64]*cart.Cart
 }
 
-type CartItem struct {
-	m map[int64]*cart.CartItem
-}
-
-func NewCartItem() *CartItem {
-	return &CartItem{
-		m: make(map[int64]*cart.CartItem),
-	}
-}
-
 func New() *Carts {
 	return &Carts{
 		idCartMap: make(map[int64]*cart.Cart),
