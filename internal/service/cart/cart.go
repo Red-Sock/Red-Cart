@@ -6,6 +6,7 @@ import (
 
 	errors "github.com/Red-Sock/trace-errors"
 
+	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
@@ -24,19 +25,11 @@ func New(userData data.Carts) *CartsService {
 }
 
 func (c CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
-	_, err := c.cartsData.Get(ctx, idOwner)
-	if err != nil {
-		return "", err
-	}
+	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
 
-	return "", nil
-}
-
-func (c CartsService) Get(ctx context.Context, idOwner int64) (string, error) {
-	//TODO переделать обработку ошибки
-	_, err := c.cartsData.Get(ctx, idOwner)
-	if err != nil {
-		return "", err
+	if err == nil && cart.OwnerId != 0 {
+		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
+		return "", errors.New(msg)
 	}
 
 	id, err := c.cartsData.Create(ctx, idOwner)
@@ -46,4 +39,22 @@ func (c CartsService) Get(ctx context.Context, idOwner int64) (string, error) {
 	}
 
 	return fmt.Sprintf(msgString, id, id), nil
+}
+
+func (c CartsService) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
+	cart, err := c.cartsData.GetByCartId(ctx, cartId)
+	if err != nil {
+		return cart, err
+	}
+
+	return cart, nil
+}
+
+func (c CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (cart.Cart, error) {
+	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
+	if err != nil {
+		return cart, err
+	}
+
+	return cart, nil
 }

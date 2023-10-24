@@ -2,7 +2,6 @@ package carts
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -12,45 +11,67 @@ import (
 )
 
 type Carts struct {
-	idCart atomic.Int64
-	rw     sync.RWMutex
-	m      map[int64]cart.Cart
+	idCart    atomic.Int64
+	rw        sync.RWMutex
+	idCartMap map[int64]*cart.Cart
+	ownerMap  map[int64]*cart.Cart
 }
 
-// Точно не пустой!
+type CartItem struct {
+	m map[int64]*cart.CartItem
+}
+
+func NewCartItem() *CartItem {
+	return &CartItem{
+		m: make(map[int64]*cart.CartItem),
+	}
+}
+
 func New() *Carts {
 	return &Carts{
-		m: make(map[int64]cart.Cart),
+		idCartMap: make(map[int64]*cart.Cart),
+		ownerMap:  make(map[int64]*cart.Cart),
 	}
 }
 
-func (c *Carts) Get(ctx context.Context, idOwner int64) (cart.Cart, error) {
+func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
-	cart, ok := c.m[idOwner]
-
-	//TODO переделать логику Get
-	if ok {
-		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
-		return c.m[idOwner], errors.New(msg)
+	cartNew, ok := c.idCartMap[cartId]
+	if !ok {
+		return cart.Cart{}, errors.New("Корзина не найдена")
 	}
+	return *cartNew, nil
+}
 
-	return c.m[idOwner], nil
+func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, error) {
+	c.rw.RLock()
+	defer c.rw.RUnlock()
+	cartNew, ok := c.ownerMap[ownerId]
+	if !ok {
+		return cart.Cart{}, errors.New("Корзина не найдена")
+
+	}
+	return *cartNew, nil
 }
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	idCatNew := c.idCart.Add(1)
+	idCartNew := c.idCart.Add(1)
 	c.rw.Lock()
 	defer c.rw.Unlock()
-	c.m[idOwner] = cart.Cart{
-		Id:      idCatNew,
+
+	newCart := &cart.Cart{
+		Id:      idCartNew,
 		OwnerId: idOwner,
 		Url:     "",
 	}
-	return idCatNew, nil
+	c.idCartMap[idCartNew] = newCart
+	c.ownerMap[idOwner] = newCart
+
+	return idCartNew, nil
 }
 
 func (c *Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {
-	//TODO в рамках RC-11
+	//TODO Чет я уже забыл где я это буду использовать, но обязательно буду!)
 	return cart.Cart{}, errors.New("not implemented")
 }

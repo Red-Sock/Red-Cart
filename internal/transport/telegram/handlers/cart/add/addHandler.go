@@ -34,6 +34,9 @@ func (h *Handler) GetCommand() string {
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	commandFromTg := strings.Split(in.Text, " ")
 	var outMsg string = "testMsg"
+	//TODO не знаю на сколько это правильно, просто пытался избавиться от дублирования кода на перевода из строки в число
+	var id int64
+	var ok bool
 
 	switch len(commandFromTg) {
 	case 1, 2:
@@ -43,7 +46,8 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	default:
 		if len(commandFromTg) > 2 {
-			if !checkIdCart(commandFromTg[1]) {
+			id, ok = checkIdForInteger(commandFromTg[1])
+			if !ok {
 				outMsg = "Идентификатор корзины должен быть целочисленным и положительным"
 				out.SendMessage(response.NewMessage(outMsg))
 				return
@@ -51,22 +55,21 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		}
 
 	}
-
-	checkEmptyCart()
+	_, err := h.cartService.GetByCartId(in.Ctx, id)
+	if err != nil {
+		out.SendMessage(response.NewMessage(outMsg))
+		return
+	}
 
 	out.SendMessage(response.NewMessage(outMsg))
 }
 
-func checkEmptyCart() {
-
-}
-
-func checkIdCart(id string) bool {
-	_, err := strconv.Atoi(id)
+func checkIdForInteger(id string) (int64, bool) {
+	newId, err := strconv.Atoi(id)
 
 	if err != nil {
-		return false
+		return 0, false
 	}
 
-	return true
+	return int64(newId), true
 }
