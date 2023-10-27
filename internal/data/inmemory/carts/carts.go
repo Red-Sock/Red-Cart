@@ -46,19 +46,19 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, err
 }
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	idCartNew := c.idCart.Add(1)
+	newCart := &cart.Cart{
+		OwnerId: idOwner,
+	}
+
+	newCart.Id = c.idCart.Add(1)
+
 	c.rw.Lock()
 	defer c.rw.Unlock()
 
-	newCart := &cart.Cart{
-		Id:      idCartNew,
-		OwnerId: idOwner,
-		Url:     "",
-	}
-	c.idCartMap[idCartNew] = newCart
+	c.idCartMap[newCart.Id] = newCart
 	c.ownerMap[idOwner] = newCart
 
-	return idCartNew, nil
+	return newCart.Id, nil
 }
 
 func (c *Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {

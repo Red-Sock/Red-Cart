@@ -1,6 +1,6 @@
 package cart
 
 type CartItem struct {
-	Items  []string
-	UserID int64
+	ItemNames []string
+	UserID    int64
 }

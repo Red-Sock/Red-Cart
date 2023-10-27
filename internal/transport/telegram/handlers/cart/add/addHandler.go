@@ -25,7 +25,7 @@ func New(service service.CartService) *Handler {
 }
 
 func (h *Handler) GetDescription() string {
-	return "add Item"
+	return "Adds item to cart"
 }
 
 func (h *Handler) GetCommand() string {
@@ -35,28 +35,22 @@ func (h *Handler) GetCommand() string {
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	commandFromTg := strings.Split(in.Text, " ")
 	var outMsg string = "testMsg"
-	//TODO не знаю на сколько это правильно, просто пытался избавиться от дублирования кода на перевода из строки в число
-	var id int64
-	var ok bool
 
-	switch len(commandFromTg) {
-	case 1, 2:
+	if len(commandFromTg) < 3 {
 		outMsg = "Чтобы добавить товар в корзину воспользуйтесь коммандой /add_item {id} {товар_1} {товар_2}\n" +
 			"Пример: /add_item 2 беляши кола сникерс"
 		out.SendMessage(response.NewMessage(outMsg))
 		return
-	default:
-		if len(commandFromTg) > 2 {
-			id, ok = checkIdForInteger(commandFromTg[1])
-			if !ok {
-				outMsg = "Идентификатор корзины должен быть целочисленным и положительным"
-				out.SendMessage(response.NewMessage(outMsg))
-				return
-			}
-		}
-
 	}
-	_, err := h.cartService.GetByCartId(in.Ctx, id)
+
+	id, _ := strconv.Atoi(commandFromTg[1]) //checkIdForInteger(commandFromTg[1])
+	if id == 0 {
+		outMsg = "Идентификатор корзины должен быть целочисленным и положительным"
+		out.SendMessage(response.NewMessage(outMsg))
+		return
+	}
+
+	_, err := h.cartService.GetByCartId(in.Ctx, int64(id))
 	if err != nil {
 		outMsg = fmt.Sprintf("Корзины с id = %d  не существует", id)
 		out.SendMessage(response.NewMessage(outMsg))
@@ -64,14 +58,4 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	}
 
 	out.SendMessage(response.NewMessage(outMsg))
-}
-
-func checkIdForInteger(id string) (int64, bool) {
-	newId, err := strconv.Atoi(id)
-
-	if err != nil {
-		return 0, false
-	}
-
-	return int64(newId), true
 }

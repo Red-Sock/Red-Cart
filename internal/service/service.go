@@ -20,10 +20,6 @@ func New(sD data.Storage) *Storage {
 	}
 }
 
-func (s *Storage) CartItem() service.CartItem {
-	return s.CartItem()
-}
-
 func (s *Storage) User() service.UserService {
 	return s.UserService
 }
