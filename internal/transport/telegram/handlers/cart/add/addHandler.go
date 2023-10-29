@@ -1,7 +1,6 @@
 package add
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -43,19 +42,18 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	id, _ := strconv.Atoi(commandFromTg[1]) //checkIdForInteger(commandFromTg[1])
+	id, _ := strconv.Atoi(commandFromTg[1])
 	if id == 0 {
 		outMsg = "Идентификатор корзины должен быть целочисленным и положительным"
 		out.SendMessage(response.NewMessage(outMsg))
 		return
 	}
 
-	_, err := h.cartService.GetByCartId(in.Ctx, int64(id))
+	err := h.cartService.AddCartItems(in.Ctx, commandFromTg[2:], int64(id), in.From.ID)
 	if err != nil {
-		outMsg = fmt.Sprintf("Корзины с id = %d  не существует", id)
-		out.SendMessage(response.NewMessage(outMsg))
-		return
+		out.SendMessage(response.NewMessage(err.Error()))
 	}
+	outMsg = "Предметы были успешно добавлены в корзину!"
 
 	out.SendMessage(response.NewMessage(outMsg))
 }

@@ -37,10 +37,12 @@ func New(userData data.Carts) *CartsService {
 func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
 	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
 
-	if err != nil {
-		msg := fmt.Sprintf("Ошибка БД при получения корзины по Id")
-		return "", errors.New(msg)
-	}
+	//TODO пока что не знаю что делать с этой ошибкой, так как в нормальной БД мы можем оставить эту ошибку, а для карты она нам не нужна
+
+	//if err != nil {
+	//	msg := fmt.Sprintf("Ошибка БД при получения корзины по Id")
+	//	return "", errors.New(msg)
+	//}
 
 	if cart.OwnerId != 0 {
 		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
@@ -54,6 +56,18 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 	}
 
 	return fmt.Sprintf(msgString, id, id), nil
+}
+
+func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
+	_, err := c.GetByCartId(ctx, cardId)
+	if err != nil {
+		outMsg := fmt.Sprintf("Корзины с id = %d  не существует", cardId)
+		return errors.New(outMsg)
+	}
+	//TODO добавить логику с ошибкой и возвратом ответа, если он нужен
+	c.cartsData.AddCartItems(ctx, items, cardId, userId)
+
+	return nil
 }
 
 func (c *CartsService) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {

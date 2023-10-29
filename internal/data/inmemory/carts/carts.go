@@ -2,6 +2,7 @@ package carts
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -15,12 +16,14 @@ type Carts struct {
 	rw        sync.RWMutex
 	idCartMap map[int64]*cart.Cart
 	ownerMap  map[int64]*cart.Cart
+	cartItems map[int64][]cart.CartItem
 }
 
 func New() *Carts {
 	return &Carts{
 		idCartMap: make(map[int64]*cart.Cart),
 		ownerMap:  make(map[int64]*cart.Cart),
+		cartItems: make(map[int64][]cart.CartItem),
 	}
 }
 
@@ -47,10 +50,9 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, err
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
 	newCart := &cart.Cart{
+		Id:      c.idCart.Add(1),
 		OwnerId: idOwner,
 	}
-
-	newCart.Id = c.idCart.Add(1)
 
 	c.rw.Lock()
 	defer c.rw.Unlock()
@@ -61,7 +63,20 @@ func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error)
 	return newCart.Id, nil
 }
 
-func (c *Carts) Show(ctx context.Context, id int64) (cart.Cart, error) {
-	//TODO Чет я уже забыл где я это буду использовать, но обязательно буду!)
+func (c *Carts) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
+	c.cartItems[cardId] = append(c.cartItems[cardId], cart.CartItem{
+		ItemNames: items,
+		UserID:    userId,
+	})
+	//TODO Пока что просто для проверки, что все отработало
+	c.ShowCart(ctx, cardId)
+	return nil
+}
+
+// TODO В дальнейшем будет выводить список товаров в корзине
+func (c *Carts) ShowCart(ctx context.Context, cardId int64) (cart.Cart, error) {
+	for _, items := range c.cartItems[cardId] {
+		fmt.Println(items)
+	}
 	return cart.Cart{}, errors.New("not implemented")
 }
