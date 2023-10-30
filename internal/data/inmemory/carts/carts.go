@@ -30,21 +30,25 @@ func New() *Carts {
 func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
+
 	cartNew, ok := c.idCartMap[cartId]
 	if !ok {
 		return cart.Cart{}, errors.New("Корзина не найдена")
 	}
+
 	return *cartNew, nil
 }
 
 func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, error) {
 	c.rw.RLock()
 	defer c.rw.RUnlock()
+
 	cartNew, ok := c.ownerMap[ownerId]
 	if !ok {
-		return cart.Cart{}, errors.New("Корзина не найдена")
+		return cart.Cart{}, nil
 
 	}
+
 	return *cartNew, nil
 }
 
@@ -75,8 +79,8 @@ func (c *Carts) AddCartItems(ctx context.Context, items []string, cardId int64, 
 
 // TODO В дальнейшем будет выводить список товаров в корзине
 func (c *Carts) ShowCart(ctx context.Context, cardId int64) (cart.Cart, error) {
-	for _, items := range c.cartItems[cardId] {
-		fmt.Println(items)
+	for _, ListItems := range c.cartItems[cardId] {
+		fmt.Println(ListItems)
 	}
 	return cart.Cart{}, errors.New("not implemented")
 }

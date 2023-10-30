@@ -33,19 +33,16 @@ func (h *Handler) GetCommand() string {
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	commandFromTg := strings.Split(in.Text, " ")
-	var outMsg string = "testMsg"
 
 	if len(commandFromTg) < 3 {
-		outMsg = "Чтобы добавить товар в корзину воспользуйтесь коммандой /add_item {id} {товар_1} {товар_2}\n" +
-			"Пример: /add_item 2 беляши кола сникерс"
-		out.SendMessage(response.NewMessage(outMsg))
+		out.SendMessage(response.NewMessage("Чтобы добавить товар в корзину воспользуйтесь коммандой /add_item {id} {товар_1} {товар_2}\n" +
+			"Пример: /add_item 2 беляши кола сникерс"))
 		return
 	}
 
 	id, _ := strconv.Atoi(commandFromTg[1])
 	if id == 0 {
-		outMsg = "Идентификатор корзины должен быть целочисленным и положительным"
-		out.SendMessage(response.NewMessage(outMsg))
+		out.SendMessage(response.NewMessage("Идентификатор корзины должен быть целочисленным и положительным"))
 		return
 	}
 
@@ -53,7 +50,6 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 	}
-	outMsg = "Предметы были успешно добавлены в корзину!"
 
-	out.SendMessage(response.NewMessage(outMsg))
+	out.SendMessage(response.NewMessage("Предметы были успешно добавлены в корзину!"))
 }
