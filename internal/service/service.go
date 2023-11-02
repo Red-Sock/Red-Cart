@@ -8,9 +8,8 @@ import (
 )
 
 type Storage struct {
-	UserService     *user.UsersService
-	CartService     *cart.CartsService
-	CartItemService *cart.CartItemService
+	UserService *user.UsersService
+	CartService *cart.CartsService
 }
 
 func New(sD data.Storage) *Storage {

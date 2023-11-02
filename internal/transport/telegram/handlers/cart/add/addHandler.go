@@ -49,6 +49,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	err := h.cartService.AddCartItems(in.Ctx, commandFromTg[2:], int64(id), in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
+		return
 	}
 
 	out.SendMessage(response.NewMessage("Предметы были успешно добавлены в корзину!"))

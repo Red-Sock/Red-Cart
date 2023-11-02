@@ -33,7 +33,7 @@ func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error
 
 	cartNew, ok := c.idCartMap[cartId]
 	if !ok {
-		return cart.Cart{}, errors.New("Корзина не найдена")
+		return cart.Cart{}, nil
 	}
 
 	return *cartNew, nil
@@ -46,7 +46,6 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, err
 	cartNew, ok := c.ownerMap[ownerId]
 	if !ok {
 		return cart.Cart{}, nil
-
 	}
 
 	return *cartNew, nil

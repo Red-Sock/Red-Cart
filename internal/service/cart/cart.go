@@ -16,21 +16,11 @@ const msgString = `Корзина c id = %d была успешно создан
 
 type CartsService struct {
 	cartsData data.Carts
-	cartItem  *CartItemService
-}
-
-type CartItemService struct {
-	cartsData data.Carts
-}
-
-func NewCartItem() *CartItemService {
-	return &CartItemService{}
 }
 
 func New(userData data.Carts) *CartsService {
 	return &CartsService{
 		cartsData: userData,
-		cartItem:  NewCartItem(),
 	}
 }
 
@@ -38,13 +28,11 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
 
 	if err != nil {
-		msg := fmt.Sprintf("Ошибка БД при получения корзины по Id")
-		return "", errors.New(msg)
+		return "", errors.New("Ошибка БД при получения корзины по Id")
 	}
 
 	if cart.OwnerId != 0 {
-		msg := fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id)
-		return "", errors.New(msg)
+		return "", errors.New(fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id))
 	}
 
 	id, err := c.cartsData.Create(ctx, idOwner)
@@ -57,13 +45,17 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 }
 
 func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
-	_, err := c.cartsData.GetByCartId(ctx, cardId)
+	cartFromDB, err := c.cartsData.GetByCartId(ctx, cardId)
 
 	if err != nil {
+		return err
+	}
+
+	if cartFromDB.Id == 0 {
 		outMsg := fmt.Sprintf("Корзины с id = %d  не существует", cardId)
 		return errors.New(outMsg)
 	}
-	//TODO добавить логику с ошибкой и возвратом ответа, если он нужен
+	//TODO [RC-12] добавить логику с ошибкой и возвратом ответа, если он нужен
 	c.cartsData.AddCartItems(ctx, items, cardId, userId)
 
 	return nil
@@ -72,7 +64,6 @@ func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId 
 func (c *CartsService) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
 	res, err := c.cartsData.GetByCartId(ctx, cartId)
 	if err != nil {
-		//TODO надеюсь я тебя правильно понял)
 		return cart.Cart{}, err
 	}
 
