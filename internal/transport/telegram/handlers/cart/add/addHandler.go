@@ -2,7 +2,6 @@ package add
 
 import (
 	"strconv"
-	"strings"
 
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
@@ -32,7 +31,7 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	commandFromTg := strings.Split(in.Text, " ")
+	commandFromTg := in.Args
 
 	if len(commandFromTg) < 3 {
 		out.SendMessage(response.NewMessage("Чтобы добавить товар в корзину воспользуйтесь коммандой /add_item {id} {товар_1} {товар_2}\n" +
@@ -40,13 +39,13 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	id, _ := strconv.Atoi(commandFromTg[1])
+	id, _ := strconv.Atoi(commandFromTg[0])
 	if id == 0 {
 		out.SendMessage(response.NewMessage("Идентификатор корзины должен быть целочисленным и положительным"))
 		return
 	}
 
-	err := h.cartService.AddCartItems(in.Ctx, commandFromTg[2:], int64(id), in.From.ID)
+	err := h.cartService.AddCartItems(in.Ctx, commandFromTg[1:], int64(id), in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return

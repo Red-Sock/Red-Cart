@@ -26,7 +26,6 @@ func New(userData data.Carts) *CartsService {
 
 func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
 	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
-
 	if err != nil {
 		return "", errors.New("Ошибка БД при получения корзины по Id")
 	}
@@ -36,7 +35,6 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 	}
 
 	id, err := c.cartsData.Create(ctx, idOwner)
-
 	if err != nil {
 		return "", errors.Wrap(err, "error Creating cart")
 	}
@@ -46,7 +44,6 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 
 func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
 	cartFromDB, err := c.cartsData.GetByCartId(ctx, cardId)
-
 	if err != nil {
 		return err
 	}

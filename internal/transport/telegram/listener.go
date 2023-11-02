@@ -26,6 +26,7 @@ func NewServer(cfg *config.Config, bot *client.Bot, srv service.Storage) (s *Ser
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
 		s.bot.AddCommandHandler(welcome.New(srv.User()))
+
 		s.bot.AddCommandHandler(add.New(srv.Cart()))
 		s.bot.AddCommandHandler(create.New(srv.Cart()))
 

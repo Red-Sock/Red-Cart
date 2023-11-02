@@ -43,12 +43,12 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, err
 	c.rw.RLock()
 	defer c.rw.RUnlock()
 
-	cartNew, ok := c.ownerMap[ownerId]
+	result, ok := c.ownerMap[ownerId]
 	if !ok {
 		return cart.Cart{}, nil
 	}
 
-	return *cartNew, nil
+	return *result, nil
 }
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
