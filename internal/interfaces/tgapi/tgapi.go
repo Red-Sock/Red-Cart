@@ -5,7 +5,7 @@ import (
 )
 
 type TgApi interface {
-	Start()
+	Start() error
 	Stop()
 	AddCommandHandler(handler gotg.CommandHandler)
 }
