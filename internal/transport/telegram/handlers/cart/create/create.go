@@ -34,6 +34,6 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
-	msg := response.NewMessage(resp)
-	out.SendMessage(msg)
+
+	out.SendMessage(response.NewMessage(resp))
 }

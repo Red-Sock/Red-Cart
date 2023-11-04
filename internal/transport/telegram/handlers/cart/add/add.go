@@ -32,9 +32,8 @@ func (h *Handler) GetCommand() string {
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	commandFromTg := in.Args
-
 	if len(commandFromTg) < 3 {
-		out.SendMessage(response.NewMessage("Чтобы добавить товар в корзину воспользуйтесь коммандой /add_item {id} {товар_1} {товар_2}\n" +
+		out.SendMessage(response.NewMessage("Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}\n" +
 			"Пример: /add_item 2 беляши кола сникерс"))
 		return
 	}
