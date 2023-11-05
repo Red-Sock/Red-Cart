@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:13.6
+    environment:
+      POSTGRES_USER: red_cart
+      POSTGRES_PASSWORD:
+      POSTGRES_DB: red_cart
+      POSTGRES_HOST_AUTH_METHOD: trust
+# Раскоментировать если нужно сохранять состояние после выключения
+#    volumes:
+#      - './data:/var/lib/postgresql'
+    ports:
+      - "5432:5432"
