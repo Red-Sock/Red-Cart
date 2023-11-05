@@ -3,9 +3,8 @@ package telegram
 import (
 	"context"
 
-	"github.com/Red-Sock/go_tg/client"
-
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	"github.com/Red-Sock/Red-Cart/internal/interfaces/tgapi"
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/add"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/create"
@@ -14,10 +13,10 @@ import (
 )
 
 type Server struct {
-	bot *client.Bot
+	bot tgapi.TgApi
 }
 
-func NewServer(cfg *config.Config, bot *client.Bot, srv service.Storage) (s *Server) {
+func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Server) {
 	s = &Server{
 		bot: bot,
 	}
@@ -29,7 +28,6 @@ func NewServer(cfg *config.Config, bot *client.Bot, srv service.Storage) (s *Ser
 
 		s.bot.AddCommandHandler(add.New(srv.Cart()))
 		s.bot.AddCommandHandler(create.New(srv.Cart()))
-
 	}
 
 	return s

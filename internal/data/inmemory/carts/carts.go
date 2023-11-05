@@ -79,7 +79,7 @@ func (c *Carts) AddCartItems(ctx context.Context, items []string, cardId int64, 
 // TODO В дальнейшем будет выводить список товаров в корзине
 func (c *Carts) ShowCart(ctx context.Context, cardId int64) (cart.Cart, error) {
 	for _, ListItems := range c.cartItems[cardId] {
-		fmt.Println(ListItems)
+		fmt.Println("In ShowCart() ", ListItems)
 	}
 	return cart.Cart{}, errors.New("not implemented")
 }
