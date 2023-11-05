@@ -49,7 +49,7 @@ func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId 
 	}
 
 	if cartFromDB.Id == 0 {
-		outMsg := fmt.Sprintf("Корзины с id = %d  не существует", cardId)
+		outMsg := fmt.Sprintf("Корзины с id = %d не существует", cardId)
 		return errors.New(outMsg)
 	}
 	//TODO [RC-12] добавить логику с ошибкой и возвратом ответа, если он нужен

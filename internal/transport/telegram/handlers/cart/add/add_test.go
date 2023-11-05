@@ -18,6 +18,7 @@ const (
 	errNotEnoughArgMessage = `Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}
 Пример: /add_item 2 беляши кола сникерс`
 	errNotIntegerMessage = `Идентификатор корзины должен быть целочисленным и положительным`
+	errNoIdInDBMessage   = `Корзины с id = 1 не существует`
 	userId               = int64(1)
 )
 
@@ -106,6 +107,28 @@ func Test_Create(t *testing.T) {
 				a.Out = mocks.NewChatMock(t)
 				a.Out.SendMessageMock.Expect(&response.MessageOut{
 					Text: errNotIntegerMessage,
+				})
+				return
+			},
+		},
+		"NO_ID_IN_DB": {
+			create: func() (a arguments) {
+				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
+				a.h = New(app.Srv.Cart())
+
+				a.In = &model.MessageIn{
+					Ctx: context.Background(),
+					Message: &tgbotapi.Message{
+						From: &tgbotapi.User{
+							ID: userId,
+						},
+					},
+					Args: []string{"1", "сникерс", "баунти"},
+				}
+
+				a.Out = mocks.NewChatMock(t)
+				a.Out.SendMessageMock.Expect(&response.MessageOut{
+					Text: errNoIdInDBMessage,
 				})
 				return
 			},
