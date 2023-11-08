@@ -14,4 +14,3 @@ goose:
 # Не знаю как именно должна выглядит миграция
 upMigration:
 	goose.Up
-	goose.Down
