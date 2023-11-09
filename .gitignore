@@ -18,4 +18,4 @@ config/dev.yaml
 # vendor/
 .idea
 
-./data:/var/lib/postgresql
+data
