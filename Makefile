@@ -10,4 +10,5 @@ mock:
 
 # Не знаю как именно должна выглядит миграция
 upMigration:
-	goose postgres "user=red_cart dbname=red_cart port=5444 sslmode=disable" up
+	goose -dir migration postgres "user=red_cart dbname=red_cart port=5444 sslmode=disable" up
+
