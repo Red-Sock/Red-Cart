@@ -5,3 +5,10 @@ app_info:
 server:
     telegram:
         api_key: ""
+data_sources:
+    postgres:
+        host: localhost
+        port: 5432
+        name: "red_cart"
+        user: "red_cart"
+        pwd: ""
