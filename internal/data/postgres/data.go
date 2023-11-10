@@ -1,8 +1,8 @@
-package inmemory
+package postgres
 
 import (
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/carts"
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory/users"
+	"github.com/Red-Sock/Red-Cart/internal/clients/postgres"
+	"github.com/Red-Sock/Red-Cart/internal/data/postgres/users"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 )
 
@@ -11,10 +11,11 @@ type Storage struct {
 	Carts data.Carts
 }
 
-func New() *Storage {
+func New(conn postgres.Conn) *Storage {
 	return &Storage{
-		Users: users.NewUsers(),
-		Carts: carts.New()}
+		Users: users.New(conn),
+		//Carts: carts.New()}
+	}
 }
 
 func (s *Storage) User() data.Users {
