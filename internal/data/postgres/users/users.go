@@ -4,6 +4,7 @@ import (
 	"context"
 
 	errors "github.com/Red-Sock/trace-errors"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/Red-Sock/Red-Cart/internal/clients/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/domain/user"
@@ -42,6 +43,10 @@ WHERE tg_id = $1`,
 	).Scan(
 		&dbUser.Id,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return dbUser, nil
+	}
+
 	if err != nil {
 		return user.User{}, errors.Wrap(err, "error getting user from database")
 	}

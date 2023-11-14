@@ -11,7 +11,6 @@ import (
 	pgclient "github.com/Red-Sock/Red-Cart/internal/clients/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/clients/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/config"
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
 	"github.com/Red-Sock/Red-Cart/internal/data/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	telegramserver "github.com/Red-Sock/Red-Cart/internal/transport/telegram"
@@ -39,17 +38,15 @@ func main() {
 		return nil
 	})
 
-	db := inmemory.New()
+	//db := inmemory.New()
 
 	conn, err := pgclient.New(ctx, cfg)
 	if err != nil {
-		// TODO убрать когда будет готов дата слой с бд
-		//logrus.Fatal(err)
+		logrus.Fatal(err)
 	}
-	// TODO использовать вместо inmemory решения
 	dbSql := postgres.New(conn)
 	_ = dbSql
-	srv := service.New(db)
+	srv := service.New(dbSql)
 
 	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *srv)
 	err = tg.Start(ctx)
