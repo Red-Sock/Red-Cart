@@ -45,7 +45,6 @@ func main() {
 		logrus.Fatal(err)
 	}
 	dbSql := postgres.New(conn)
-	_ = dbSql
 	srv := service.New(dbSql)
 
 	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *srv)

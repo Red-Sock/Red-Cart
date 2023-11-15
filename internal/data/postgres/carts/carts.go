@@ -21,13 +21,19 @@ func New(conn postgres.Conn) *Carts {
 func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
 	var dbCart cart.Cart
 
-	err := c.conn.QueryRow(ctx, `SELECT id, owner_id FROM cart
-	    WHERE id = $1`, cartId).Scan(&dbCart.Id, &dbCart.OwnerId)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return dbCart, nil
-	}
-
+	err := c.conn.QueryRow(ctx, `
+	SELECT 
+	    id, 
+	    owner_id 
+	FROM cart
+	WHERE id = $1`,
+		cartId).
+		Scan(&dbCart.Id, &dbCart.OwnerId)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return dbCart, nil
+		}
+
 		return cart.Cart{}, errors.Wrap(err, "error getting cart by ownerId from database")
 	}
 	return dbCart, nil
@@ -35,13 +41,19 @@ func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error
 
 func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, error) {
 	var dbCart cart.Cart
-	err := c.conn.QueryRow(ctx, `SELECT id, owner_id FROM cart
-	    WHERE owner_id = $1`, ownerId).Scan(&dbCart.Id, &dbCart.OwnerId)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return dbCart, nil
-	}
-
+	err := c.conn.QueryRow(ctx, `
+	SELECT 
+		id,
+		owner_id
+	FROM cart
+	WHERE owner_id = $1`,
+		ownerId).
+		Scan(&dbCart.Id, &dbCart.OwnerId)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return dbCart, nil
+		}
+
 		return cart.Cart{}, errors.Wrap(err, "error getting cart by ownerId from database")
 	}
 	return dbCart, nil
@@ -49,9 +61,9 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, err
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
 	_, err = c.conn.Exec(ctx, `
-INSERT INTO cart
+	INSERT INTO cart
 	    (owner_id)
-VALUES	(   $1)`,
+	VALUES	(   $1)`,
 		idOwner,
 	)
 	if err != nil {
@@ -67,8 +79,9 @@ VALUES	(   $1)`,
 }
 
 func (c *Carts) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
-	_, err := c.conn.Exec(ctx, `INSERT INTO carts_items
-	(item_name,user_id)
+	_, err := c.conn.Exec(ctx, `
+	INSERT INTO carts_items
+		(item_name,user_id)
 	VALUES($1,$2)`,
 		items, userId)
 
