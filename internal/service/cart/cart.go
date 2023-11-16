@@ -18,9 +18,9 @@ type CartsService struct {
 	cartsData data.Carts
 }
 
-func New(userData data.Carts) *CartsService {
+func New(cartData data.Carts) *CartsService {
 	return &CartsService{
-		cartsData: userData,
+		cartsData: cartData,
 	}
 }
 

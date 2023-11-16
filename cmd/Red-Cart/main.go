@@ -8,9 +8,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	pgclient "github.com/Red-Sock/Red-Cart/internal/clients/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/clients/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/config"
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
+	"github.com/Red-Sock/Red-Cart/internal/data/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	telegramserver "github.com/Red-Sock/Red-Cart/internal/transport/telegram"
 	"github.com/Red-Sock/Red-Cart/internal/utils/closer"
@@ -37,8 +38,14 @@ func main() {
 		return nil
 	})
 
-	db := inmemory.New()
-	srv := service.New(db)
+	//db := inmemory.New()
+
+	conn, err := pgclient.New(ctx, cfg)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	dbSql := postgres.New(conn)
+	srv := service.New(dbSql)
 
 	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *srv)
 	err = tg.Start(ctx)
