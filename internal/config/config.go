@@ -4,6 +4,7 @@ package config
 
 import (
 	"flag"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -44,10 +45,20 @@ func ReadConfig() (*Config, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "os.Open")
 	}
+	defer r.Close()
 
+	b, err := io.ReadAll(r)
+	if err != nil {
+		return nil, errors.Wrapf(err, "io.ReadAll")
+	}
+
+	return ParseConfig(b)
+}
+
+func ParseConfig(b []byte) (*Config, error) {
 	var cfg map[string]interface{}
 
-	err = yaml.NewDecoder(r).Decode(&cfg)
+	err := yaml.Unmarshal(b, &cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "yaml.Decode")
 	}

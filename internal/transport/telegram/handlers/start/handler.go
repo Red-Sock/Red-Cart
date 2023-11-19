@@ -1,4 +1,4 @@
-package welcome
+package start
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"

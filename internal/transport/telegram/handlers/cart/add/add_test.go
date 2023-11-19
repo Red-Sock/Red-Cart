@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	successCreatedMessage  = `Предметы были успешно добавлены в корзину!`
-	errNotEnoughArgMessage = `Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}
+	cartAddSuccessCreatedMessage = `Предметы были успешно добавлены в корзину!`
+	errNotEnoughArgMessage       = `Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}
 Пример: /add_item 2 беляши кола сникерс`
 	errNotIntegerMessage = `Идентификатор корзины должен быть целочисленным и положительным`
 	errNoIdInDBMessage   = `Корзины с id = 1 не существует`
@@ -54,7 +54,7 @@ func Test_Create(t *testing.T) {
 
 				a.Out = mocks.NewChatMock(t)
 				a.Out.SendMessageMock.Expect(&response.MessageOut{
-					Text: successCreatedMessage,
+					Text: cartAddSuccessCreatedMessage,
 				})
 				return
 			},
