@@ -1,4 +1,4 @@
-package create
+package tests
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Red-Sock/Red-Cart/tests"
+	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/create"
 	"github.com/Red-Sock/Red-Cart/tests/mocks"
 )
 
@@ -17,13 +18,12 @@ const (
 	successCreatedMessage = `Корзина c id = 1 была успешно создана.
 Друзья могут добавить корзину через
 /add_item 1 имя_товара_1 имя_товара_2`
-	errCreateMessage = `У вас уже есть корзина с идентификатором = 1`
-	userId           = int64(1)
+	errCreateMessage = `У вас уже есть корзина с идентификатором = 2`
 )
 
 func Test_Create(t *testing.T) {
 	type arguments struct {
-		h   *Handler
+		h   *create.Handler
 		In  *model.MessageIn
 		Out *mocks.ChatMock
 	}
@@ -34,17 +34,24 @@ func Test_Create(t *testing.T) {
 
 		"OK": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = create.New(app.Srv.Cart())
+
+				userId := GetUserID()
 
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
-							ID: 1,
+							ID: userId,
 						},
 					},
 				}
+				newUser := user.User{
+					Id: userId,
+				}
+				err := app.Db.User().Upsert(context.Background(), newUser)
+				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
 				a.Out.SendMessageMock.Expect(&response.MessageOut{
@@ -55,10 +62,18 @@ func Test_Create(t *testing.T) {
 		},
 		"ERR_CART_EXISTS": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = create.New(app.Srv.Cart())
 
-				_, err := app.Db.Cart().Create(context.Background(), userId)
+				userId := GetUserID()
+
+				newUser := user.User{
+					Id: userId,
+				}
+				err := app.Db.User().Upsert(context.Background(), newUser)
+				require.NoError(t, err, "error creating test cart")
+
+				_, err = app.Db.Cart().Create(context.Background(), userId)
 				require.NoError(t, err, "error creating test cart")
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),

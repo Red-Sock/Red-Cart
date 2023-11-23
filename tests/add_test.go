@@ -1,7 +1,8 @@
-package add
+package tests
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	"github.com/Red-Sock/go_tg/model"
@@ -9,7 +10,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Red-Sock/Red-Cart/tests"
+	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/add"
 	"github.com/Red-Sock/Red-Cart/tests/mocks"
 )
 
@@ -18,13 +20,12 @@ const (
 	errNotEnoughArgMessage       = `Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}
 Пример: /add_item 2 беляши кола сникерс`
 	errNotIntegerMessage = `Идентификатор корзины должен быть целочисленным и положительным`
-	errNoIdInDBMessage   = `Корзины с id = 1 не существует`
-	userId               = int64(1)
+	errNoIdInDBMessage   = `Корзины с id = 4 не существует`
 )
 
-func Test_Create(t *testing.T) {
+func Test_Add(t *testing.T) {
 	type arguments struct {
-		h   *Handler
+		h   *add.Handler
 		In  *model.MessageIn
 		Out *mocks.ChatMock
 	}
@@ -35,8 +36,10 @@ func Test_Create(t *testing.T) {
 
 		"OK": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = add.New(app.Srv.Cart())
+
+				userId := GetUserID()
 
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),
@@ -48,8 +51,13 @@ func Test_Create(t *testing.T) {
 					Args: []string{"1", "сникерс", "баунти"},
 				}
 
-				//Создание пользователя
-				_, err := a.h.cartService.Create(a.In.Ctx, a.In.Message.From.ID)
+				newUser := user.User{
+					Id: userId,
+				}
+				err := app.Db.User().Upsert(context.Background(), newUser)
+				require.NoError(t, err, "error creating test cart")
+
+				_, err = app.Db.Cart().Create(context.Background(), userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -61,8 +69,10 @@ func Test_Create(t *testing.T) {
 		},
 		"NOT_ENOUGH": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = add.New(app.Srv.Cart())
+
+				userId := GetUserID()
 
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),
@@ -74,8 +84,13 @@ func Test_Create(t *testing.T) {
 					Args: []string{"1"},
 				}
 
-				//Создание пользователя
-				_, err := a.h.cartService.Create(a.In.Ctx, a.In.Message.From.ID)
+				newUser := user.User{
+					Id: userId,
+				}
+				err := app.Db.User().Upsert(context.Background(), newUser)
+				require.NoError(t, err, "error creating test cart")
+
+				_, err = app.Db.Cart().Create(context.Background(), userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -87,8 +102,10 @@ func Test_Create(t *testing.T) {
 		},
 		"NOT_INTEGER": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = add.New(app.Srv.Cart())
+
+				userId := GetUserID()
 
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),
@@ -100,8 +117,13 @@ func Test_Create(t *testing.T) {
 					Args: []string{"Точно не число", "сникерс", "баунти"},
 				}
 
-				//Создание пользователя
-				_, err := a.h.cartService.Create(a.In.Ctx, a.In.Message.From.ID)
+				newUser := user.User{
+					Id: userId,
+				}
+				err := app.Db.User().Upsert(context.Background(), newUser)
+				require.NoError(t, err, "error creating test cart")
+
+				_, err = app.Db.Cart().Create(context.Background(), userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -111,10 +133,14 @@ func Test_Create(t *testing.T) {
 				return
 			},
 		},
+
+		//TODO если запускать все тесты, то тут ломается, потому что выше создается корзина
 		"NO_ID_IN_DB": {
 			create: func() (a arguments) {
-				app := tests.CreateTestApp(tests.UseInMemoryDb, tests.UseServiceV1)
-				a.h = New(app.Srv.Cart())
+				app := CreateTestApp(UsePgDb, UseServiceV1)
+				a.h = add.New(app.Srv.Cart())
+
+				userId := GetUserID()
 
 				a.In = &model.MessageIn{
 					Ctx: context.Background(),
@@ -123,7 +149,7 @@ func Test_Create(t *testing.T) {
 							ID: userId,
 						},
 					},
-					Args: []string{"1", "сникерс", "баунти"},
+					Args: []string{strconv.Itoa(int(userId)), "сникерс", "баунти"},
 				}
 
 				a.Out = mocks.NewChatMock(t)

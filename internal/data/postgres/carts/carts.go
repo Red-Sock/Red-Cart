@@ -67,7 +67,7 @@ func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error)
 		idOwner,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "error creating cart")
+		return 0, errors.Wrap(err, "error inserting cart")
 	}
 
 	dbCart, err := c.GetByOwnerId(ctx, idOwner)
