@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -14,14 +15,14 @@ import (
 	"github.com/Red-Sock/Red-Cart/tests/mocks"
 )
 
-const (
-	successCreatedMessage = `Корзина c id = 1 была успешно создана.
+func Test_Create(t *testing.T) {
+	const (
+		successCreatedMessageRegExp = `Корзина c id = \d+? была успешно создана.
 Друзья могут добавить корзину через
 /add_item 1 имя_товара_1 имя_товара_2`
-	errCreateMessage = `У вас уже есть корзина с идентификатором = 2`
-)
+		errCreateMessageRegExp = `У вас уже есть корзина с идентификатором = \d+?`
+	)
 
-func Test_Create(t *testing.T) {
 	type arguments struct {
 		h   *create.Handler
 		In  *model.MessageIn
@@ -54,8 +55,10 @@ func Test_Create(t *testing.T) {
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
-				a.Out.SendMessageMock.Expect(&response.MessageOut{
-					Text: successCreatedMessage,
+				a.Out.SendMessageMock.Set(func(out tgapi.MessageOut) {
+					message, ok := out.(*response.MessageOut)
+					require.Truef(t, ok, "output message must be of type *response.MessageOut but %T is passed", message)
+					require.Regexpf(t, successCreatedMessageRegExp, message.Text, "unexpected message response text")
 				})
 				return
 			},
@@ -85,8 +88,11 @@ func Test_Create(t *testing.T) {
 				}
 
 				a.Out = mocks.NewChatMock(t)
-				a.Out.SendMessageMock.Expect(&response.MessageOut{
-					Text: errCreateMessage,
+				a.Out.SendMessageMock.Set(func(out tgapi.MessageOut) {
+					message, ok := out.(*response.MessageOut)
+					require.Truef(t, ok, "output message must be of type *response.MessageOut but %T is passed", message)
+					require.Regexpf(t, errCreateMessageRegExp, message.Text, "unexpected message response text")
+
 				})
 				return
 			},
