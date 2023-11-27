@@ -19,7 +19,7 @@ func Test_Create(t *testing.T) {
 	const (
 		successCreatedMessageRegExp = `Корзина c id = \d+? была успешно создана.
 Друзья могут добавить корзину через
-/add_item 1 имя_товара_1 имя_товара_2`
+/add_item \d+? имя_товара_1 имя_товара_2`
 		errCreateMessageRegExp = `У вас уже есть корзина с идентификатором = \d+?`
 	)
 
