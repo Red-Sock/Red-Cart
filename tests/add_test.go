@@ -137,7 +137,6 @@ func Test_Add(t *testing.T) {
 			},
 		},
 
-		//TODO если запускать все тесты, то тут ломается, потому что выше создается корзина
 		"NO_ID_IN_DB": {
 			create: func() (a arguments) {
 				app := CreateTestApp(UsePgDb, UseServiceV1)
@@ -156,9 +155,6 @@ func Test_Add(t *testing.T) {
 				}
 
 				a.Out = mocks.NewChatMock(t)
-				//a.Out.SendMessageMock.Expect(&response.MessageOut{
-				//				//	Text: errNoIdInDBMessage,
-				//				//})
 				a.Out.SendMessageMock.Set(func(out tgapi.MessageOut) {
 					message, ok := out.(*response.MessageOut)
 					require.Truef(t, ok, "output message must be of type *response.MessageOut but %T is passed", message)
