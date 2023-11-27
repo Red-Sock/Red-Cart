@@ -22,6 +22,8 @@ func Test_Start(t *testing.T) {
 		successReturnedMessage = `Welcome Back!`
 	)
 
+	ourContext := context.Background()
+
 	type arguments struct {
 		h   *start.Handler
 		In  *model.MessageIn
@@ -40,7 +42,7 @@ func Test_Start(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -66,11 +68,11 @@ func Test_Start(t *testing.T) {
 
 				userId := GetUserID()
 
-				err := app.Db.User().Upsert(context.Background(), user.User{Id: userId})
+				err := app.Db.User().Upsert(ourContext, user.User{Id: userId})
 				require.NoError(t, err)
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,

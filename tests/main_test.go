@@ -1,5 +1,3 @@
-// TODO ПЕРЕИМЕНОВАТь в main_test.go после переноса нового теста
-
 package tests
 
 import (

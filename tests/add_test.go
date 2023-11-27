@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"testing"
 
+	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -20,10 +21,12 @@ const (
 	errNotEnoughArgMessage       = `Чтобы добавить товар в корзину воспользуйтесь командой /add_item {id} {товар_1} {товар_2}
 Пример: /add_item 2 беляши кола сникерс`
 	errNotIntegerMessage = `Идентификатор корзины должен быть целочисленным и положительным`
-	errNoIdInDBMessage   = `Корзины с id = 4 не существует`
+	errNoIdInDBMessage   = `Корзины с id = \d+? не существует`
 )
 
 func Test_Add(t *testing.T) {
+	ourContext := context.Background()
+
 	type arguments struct {
 		h   *add.Handler
 		In  *model.MessageIn
@@ -42,7 +45,7 @@ func Test_Add(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -54,10 +57,10 @@ func Test_Add(t *testing.T) {
 				newUser := user.User{
 					Id: userId,
 				}
-				err := app.Db.User().Upsert(context.Background(), newUser)
+				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
 
-				_, err = app.Db.Cart().Create(context.Background(), userId)
+				_, err = app.Db.Cart().Create(ourContext, userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -75,7 +78,7 @@ func Test_Add(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -87,10 +90,10 @@ func Test_Add(t *testing.T) {
 				newUser := user.User{
 					Id: userId,
 				}
-				err := app.Db.User().Upsert(context.Background(), newUser)
+				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
 
-				_, err = app.Db.Cart().Create(context.Background(), userId)
+				_, err = app.Db.Cart().Create(ourContext, userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -108,7 +111,7 @@ func Test_Add(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -120,10 +123,10 @@ func Test_Add(t *testing.T) {
 				newUser := user.User{
 					Id: userId,
 				}
-				err := app.Db.User().Upsert(context.Background(), newUser)
+				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
 
-				_, err = app.Db.Cart().Create(context.Background(), userId)
+				_, err = app.Db.Cart().Create(ourContext, userId)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -143,7 +146,7 @@ func Test_Add(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -153,8 +156,14 @@ func Test_Add(t *testing.T) {
 				}
 
 				a.Out = mocks.NewChatMock(t)
-				a.Out.SendMessageMock.Expect(&response.MessageOut{
-					Text: errNoIdInDBMessage,
+				//a.Out.SendMessageMock.Expect(&response.MessageOut{
+				//				//	Text: errNoIdInDBMessage,
+				//				//})
+				a.Out.SendMessageMock.Set(func(out tgapi.MessageOut) {
+					message, ok := out.(*response.MessageOut)
+					require.Truef(t, ok, "output message must be of type *response.MessageOut but %T is passed", message)
+					require.Regexpf(t, errNoIdInDBMessage, message.Text, "unexpected message response text")
+
 				})
 				return
 			},

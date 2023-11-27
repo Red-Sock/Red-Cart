@@ -23,6 +23,8 @@ func Test_Create(t *testing.T) {
 		errCreateMessageRegExp = `У вас уже есть корзина с идентификатором = \d+?`
 	)
 
+	ourContext := context.Background()
+
 	type arguments struct {
 		h   *create.Handler
 		In  *model.MessageIn
@@ -41,7 +43,7 @@ func Test_Create(t *testing.T) {
 				userId := GetUserID()
 
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
@@ -51,7 +53,7 @@ func Test_Create(t *testing.T) {
 				newUser := user.User{
 					Id: userId,
 				}
-				err := app.Db.User().Upsert(context.Background(), newUser)
+				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
 
 				a.Out = mocks.NewChatMock(t)
@@ -73,13 +75,13 @@ func Test_Create(t *testing.T) {
 				newUser := user.User{
 					Id: userId,
 				}
-				err := app.Db.User().Upsert(context.Background(), newUser)
+				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
 
-				_, err = app.Db.Cart().Create(context.Background(), userId)
+				_, err = app.Db.Cart().Create(ourContext, userId)
 				require.NoError(t, err, "error creating test cart")
 				a.In = &model.MessageIn{
-					Ctx: context.Background(),
+					Ctx: ourContext,
 					Message: &tgbotapi.Message{
 						From: &tgbotapi.User{
 							ID: userId,
