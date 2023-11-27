@@ -1,0 +1,14 @@
+app_info:
+    name: github.com/Red-Sock/Red-Cart
+    version: 0.0.1
+    startup_duration: 10s
+server:
+    telegram:
+        api_key: ""
+data_sources:
+    postgres:
+        host: localhost
+        port: 5432
+        name: "red_cart"
+        user: "red_cart"
+        pwd: ""

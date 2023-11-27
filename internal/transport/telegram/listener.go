@@ -8,8 +8,8 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/add"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/create"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/version"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/welcome"
 )
 
 type Server struct {
@@ -24,7 +24,7 @@ func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Ser
 	{
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
-		s.bot.AddCommandHandler(welcome.New(srv.User()))
+		s.bot.AddCommandHandler(start.New(srv.User()))
 
 		s.bot.AddCommandHandler(add.New(srv.Cart()))
 		s.bot.AddCommandHandler(create.New(srv.Cart()))
