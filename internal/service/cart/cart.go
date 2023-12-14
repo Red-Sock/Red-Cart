@@ -75,3 +75,12 @@ func (c *CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (cart.Ca
 
 	return res, nil
 }
+
+func (c *CartsService) ShowCartItem(ctx context.Context, idOwner int64) ([]cart.CartItem, error) {
+	res, err := c.cartsData.ShowCartItems(ctx, idOwner)
+	if err != nil {
+		return []cart.CartItem{}, err
+	}
+
+	return res, nil
+}
