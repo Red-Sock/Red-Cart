@@ -52,8 +52,11 @@ func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId 
 		outMsg := fmt.Sprintf("Корзины с id = %d не существует", cardId)
 		return errors.New(outMsg)
 	}
-	//TODO [RC-12] добавить логику с ошибкой и возвратом ответа, если он нужен
-	c.cartsData.AddCartItems(ctx, items, cardId, userId)
+
+	err = c.cartsData.AddCartItems(ctx, items, cardId, userId)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

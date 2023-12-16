@@ -2,6 +2,7 @@ package checkout
 
 import (
 	"strconv"
+	"strings"
 
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
@@ -38,14 +39,17 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	}
 
 	cartItem, err := h.cartService.ShowCartItem(in.Ctx, in.From.ID)
-	outMessage := ""
+	var outMessageBuilder strings.Builder
 	for _, item := range cartItem {
-		outMessage += "User: " + (strconv.FormatInt(item.UserID, 10)) + "\n"
+		outMessageBuilder.WriteString("User: ")
+		outMessageBuilder.WriteString(strconv.FormatInt(item.UserID, 10))
+		outMessageBuilder.WriteString("\n")
 		for _, name := range item.ItemNames {
-			outMessage += name + "\n"
+			outMessageBuilder.WriteString(name)
+			outMessageBuilder.WriteString("\n")
 		}
 	}
 
-	out.SendMessage(response.NewMessage(outMessage))
+	out.SendMessage(response.NewMessage(outMessageBuilder.String()))
 
 }

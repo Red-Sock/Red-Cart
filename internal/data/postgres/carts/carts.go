@@ -2,7 +2,6 @@ package carts
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	errors "github.com/Red-Sock/trace-errors"
@@ -82,44 +81,14 @@ func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error)
 }
 
 func (c *Carts) AddCartItems(ctx context.Context, items []string, cartId int64, userId int64) error {
-	var exists bool
-	var existingItems []string
-
-	err := c.conn.QueryRow(ctx, `
-SELECT EXISTS(
-    SELECT 
-        user_id
-    FROM carts_items
-    WHERE user_id = $1 AND cart_id = $2)`,
-		userId, cartId).
-		Scan(&exists)
-
+	_, err := c.conn.Exec(ctx, `
+    INSERT INTO carts_items (cart_id, item_name, user_id)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (user_id, cart_id)
+    DO UPDATE SET item_name = array_cat(carts_items.item_name, $4)`,
+		cartId, items, userId, items)
 	if err != nil {
 		return errors.Wrap(err, "error add cartItem")
-	}
-
-	if exists {
-		err = c.conn.QueryRow(ctx,
-			`SELECT item_name FROM carts_items WHERE user_id = $1`,
-			userId).Scan(&existingItems)
-		if err != nil && err != sql.ErrNoRows {
-			return err
-		}
-		updatedItems := append(existingItems, items...)
-		_, err = c.conn.Exec(ctx,
-			"UPDATE carts_items SET item_name = $1 WHERE user_id = $2 AND cart_id =$3", updatedItems, userId, cartId)
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err = c.conn.Exec(ctx, `
-	INSERT INTO carts_items
-		(cart_id,item_name,user_id)
-	VALUES($1,$2,$3)`,
-			cartId, items, userId)
-		if err != nil {
-			return errors.Wrap(err, "error add cartItem")
-		}
 	}
 	return nil
 }
