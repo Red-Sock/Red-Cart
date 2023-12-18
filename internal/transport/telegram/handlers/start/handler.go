@@ -6,6 +6,7 @@ import (
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
+	"github.com/Red-Sock/Red-Cart/internal/domain/user"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
@@ -30,7 +31,13 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	startMessage, err := h.userSrv.Start(in.Ctx, in.From.ID)
+	newUser := user.User{
+		Id:        in.From.ID,
+		UserName:  in.From.UserName,
+		FirstName: in.From.FirstName,
+		LastName:  in.From.LastName,
+	}
+	startMessage, err := h.userSrv.Start(in.Ctx, newUser)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
