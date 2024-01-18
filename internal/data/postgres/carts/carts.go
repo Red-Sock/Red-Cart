@@ -23,11 +23,11 @@ func (c *Carts) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error
 	var dbCart cart.Cart
 
 	err := c.conn.QueryRow(ctx, `
-SELECT 
+	SELECT 
 	    id, 
 	    owner_id 
-FROM cart
-WHERE id = $1`,
+	FROM cart
+	WHERE id = $1`,
 		cartId).
 		Scan(
 			&dbCart.Id,
@@ -45,11 +45,11 @@ WHERE id = $1`,
 func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (cart.Cart, error) {
 	var dbCart cart.Cart
 	err := c.conn.QueryRow(ctx, `
-SELECT 
+	SELECT 
 		id,
 		owner_id
-FROM cart
-WHERE owner_id = $1`,
+	FROM cart
+	WHERE owner_id = $1`,
 		ownerId).
 		Scan(
 			&dbCart.Id,
@@ -66,9 +66,9 @@ WHERE owner_id = $1`,
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
 	_, err = c.conn.Exec(ctx, `
-INSERT INTO cart
+	INSERT INTO cart
 	    (owner_id)
-VALUES	(   $1)`,
+	VALUES	(   $1)`,
 		idOwner,
 	)
 	if err != nil {
@@ -85,10 +85,10 @@ VALUES	(   $1)`,
 
 func (c *Carts) AddCartItems(ctx context.Context, items []string, cartId int64, userId int64) error {
 	_, err := c.conn.Exec(ctx, `
-INSERT INTO carts_items (cart_id, item_name, user_id)
-VALUES 					(	  $1, 		 $2, 	  $3)
-ON CONFLICT (user_id, cart_id)
-DO UPDATE SET item_name = array_cat(carts_items.item_name, $4)`,
+	INSERT INTO carts_items (cart_id, item_name, user_id)
+	VALUES 					(	  $1, 		 $2, 	  $3)
+	ON CONFLICT (user_id, cart_id)
+	DO UPDATE SET item_name = array_cat(carts_items.item_name, $4)`,
 		cartId, items, userId, items)
 	if err != nil {
 		return errors.Wrap(err, "error add cartItem")
@@ -104,10 +104,10 @@ func (c *Carts) ShowCartItems(ctx context.Context, ownerId int64) ([]cart.CartIt
 	}
 
 	row, err := c.conn.Query(ctx, `
-SELECT 
+	SELECT 
 		item_name,user_id
-FROM carts_items
-WHERE cart_id = $1`,
+	FROM carts_items
+	WHERE cart_id = $1`,
 		dbCart.Id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -132,12 +132,12 @@ WHERE cart_id = $1`,
 func (c *Carts) GetUser(ctx context.Context, userId int64) (user.User, error) {
 	var dbUser user.User
 	err := c.conn.QueryRow(ctx, `
-SELECT 
+	SELECT 
 		tg_id,
 		user_name,
 		first_name,
 		last_name
-FROM tg_users
+	FROM tg_users
 	WHERE tg_id = $1`,
 		userId,
 	).Scan(
