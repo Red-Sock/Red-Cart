@@ -118,7 +118,7 @@ func (c *Carts) ShowCartItems(ctx context.Context, ownerId int64) ([]cart.CartIt
 	}
 
 	cartItem := make([]cart.CartItem, 0)
-	for i := 0; row.Next(); i++ {
+	for row.Next() {
 		item := cart.CartItem{}
 		err = row.Scan(&item.ItemNames, &item.UserID)
 		if err != nil {
