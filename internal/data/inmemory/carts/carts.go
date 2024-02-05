@@ -19,6 +19,11 @@ type Carts struct {
 	cartItems map[int64][]cart.CartItem
 }
 
+func (c *Carts) ShowCartItems(ctx context.Context, ownerId int64) ([]cart.CartItem, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func New() *Carts {
 	return &Carts{
 		idCartMap: make(map[int64]*cart.Cart),
