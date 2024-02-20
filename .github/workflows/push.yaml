@@ -6,36 +6,49 @@ on:
       - RC-*
 
 jobs:
-  create-pull-request-to-dev:
+  create-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Create PR
+        uses: RedSockActions/create_pr@v0.0.2
         with:
-          ref: ${{ github.ref }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Creating PR
-        id: check
+  build-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13.6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          prs=$(gh pr list \
-              --repo "$GITHUB_REPOSITORY" \
-              --json headRefName \
-              --jq '
-                  map(select(.headRefName == "${{ github.REF_NAME }}"))
-                  | length
-              ')
-          
-          echo "Found $prs pull request(s)"
-          
-          if (($prs == 0)); then
-              echo "creating pull request from ${{ github.REF }} to dev branch"
-              
-              gh pr create \
-                -B main \
-                -H ${{ github.REF }} \
-                --title 'DEV RELEASE OF ${{ github.REF_NAME }}' \
-                --body 'Created by Github action. \
-                [${{ github.REF_NAME }}](https://redsock.youtrack.cloud/issue/${{ github.REF_NAME }})' > /dev/null
-          fi
+          POSTGRES_DB: red_cart
+          POSTGRES_USER: red_cart
+          POSTGRES_PASSWORD: ""
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    needs:
+      - create-pr
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test with the Go CLI
+        run: go test ./...
