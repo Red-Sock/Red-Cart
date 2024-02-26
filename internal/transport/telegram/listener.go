@@ -8,6 +8,8 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/add"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/checkout"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/checkout/accept"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/checkout/decline"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/create"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/version"
@@ -30,6 +32,8 @@ func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Ser
 		s.bot.AddCommandHandler(add.New(srv.Cart()))
 		s.bot.AddCommandHandler(create.New(srv.Cart()))
 		s.bot.AddCommandHandler(checkout.New(srv.Cart()))
+		s.bot.AddCommandHandler(accept.New(srv.Cart()))
+		s.bot.AddCommandHandler(decline.New(srv.Cart()))
 	}
 
 	return s

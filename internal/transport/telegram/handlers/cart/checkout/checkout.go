@@ -6,6 +6,7 @@ import (
 
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
+	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -43,11 +44,18 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	for _, item := range cartItem {
 		outMessageBuilder.WriteString("User: ")
 		outMessageBuilder.WriteString(strconv.FormatInt(item.UserID, 10))
-		outMessageBuilder.WriteString("\n")
+		outMessageBuilder.WriteString(" 🕐\n")
 		for _, name := range item.ItemNames {
 			outMessageBuilder.WriteString(name)
 			outMessageBuilder.WriteString("\n")
 		}
+
+		msg := response.NewMessageToChat("Подтверждать будешь пес?", item.UserID)
+		msg.Keys = &keyboard.InlineKeyboard{}
+
+		msg.Keys.AddButton("✅", "/accept")
+		msg.Keys.AddButton("❌", "/decline")
+		out.SendMessage(msg)
 	}
 
 	out.SendMessage(response.NewMessage(outMessageBuilder.String()))
