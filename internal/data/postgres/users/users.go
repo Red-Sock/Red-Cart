@@ -41,7 +41,7 @@ VALUES	($1,
 	return nil
 }
 
-func (u *Users) Get(ctx context.Context, userId int64) (domain.User, error) {
+func (u *Users) Get(ctx context.Context, userId int64) (*domain.User, error) {
 	var dbUser domain.User
 	err := u.conn.QueryRow(ctx, `
 SELECT 
@@ -58,13 +58,12 @@ WHERE tg_id = $1`,
 		&dbUser.FirstName,
 		&dbUser.LastName,
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return dbUser, nil
-	}
-
 	if err != nil {
-		return domain.User{}, errors.Wrap(err, "error getting user from database")
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "error getting user from database")
 	}
 
-	return dbUser, nil
+	return &dbUser, nil
 }

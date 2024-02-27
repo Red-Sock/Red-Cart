@@ -1,9 +1,10 @@
 package start
 
 import (
+	"fmt"
+
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
-	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
@@ -43,10 +44,12 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	msg := response.NewMessage(startMessage)
-	msg.Keys = &keyboard.InlineKeyboard{}
+	msg := response.NewMessage(startMessage.Msg + fmt.Sprintf(` 🛒
 
-	msg.Keys.AddButton("Создать корзину", "/create_cart")
-	msg.Keys.AddButton("Добавить товар", "/add_item")
+Корзина по умолчанию: %d
+
+Для добавления продуктов просто введите их название
+`, startMessage.Cart.Id))
+
 	out.SendMessage(msg)
 }

@@ -41,7 +41,7 @@ func (c *Carts) GetById(ctx context.Context, cartId int64) (domain.Cart, error) 
 	return dbCart, nil
 }
 
-func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (domain.Cart, error) {
+func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.Cart, error) {
 	var dbCart domain.Cart
 	err := c.conn.QueryRow(ctx, `
 	SELECT 
@@ -55,12 +55,12 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (domain.Cart, e
 			&dbCart.OwnerId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return dbCart, nil
+			return nil, nil
 		}
 
-		return domain.Cart{}, errors.Wrap(err, "error getting cart by ownerId from database")
+		return nil, errors.Wrap(err, "error getting cart by ownerId from database")
 	}
-	return dbCart, nil
+	return &dbCart, nil
 }
 
 func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
@@ -101,7 +101,7 @@ func (c *Carts) AddCartItems(ctx context.Context, items []domain.Item, cartId in
 }
 
 func (c *Carts) ListCartItems(ctx context.Context, ownerId int64) (map[int64][]domain.Item, error) {
-	var dbCart domain.Cart
+	var dbCart *domain.Cart
 	dbCart, err := c.GetByOwnerId(ctx, ownerId)
 	if err != nil {
 		return nil, errors.Wrap(err, "error show cart")

@@ -64,7 +64,7 @@ func (c *CartsService) GetByCartId(ctx context.Context, cartId int64) (domain.Ca
 	return c.cartsData.GetById(ctx, cartId)
 }
 
-func (c *CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (domain.Cart, error) {
+func (c *CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (*domain.Cart, error) {
 	return c.cartsData.GetByOwnerId(ctx, idOwner)
 }
 

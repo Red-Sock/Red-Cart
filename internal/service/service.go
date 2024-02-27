@@ -14,7 +14,7 @@ type Storage struct {
 
 func New(sD data.Storage) *Storage {
 	return &Storage{
-		UserService: user.New(sD.User()),
+		UserService: user.New(sD.User(), sD.Cart()),
 		CartService: cart.New(sD.Cart()),
 	}
 }

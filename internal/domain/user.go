@@ -6,7 +6,7 @@ import (
 
 type UserRepo interface {
 	Upsert(ctx context.Context, u User) error
-	Get(ctx context.Context, id int64) (User, error)
+	Get(ctx context.Context, id int64) (*User, error)
 }
 
 type User struct {
