@@ -7,6 +7,7 @@ import (
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
 
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
@@ -44,7 +45,14 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	err := h.cartService.AddCartItems(in.Ctx, commandFromTg[1:], int64(id), in.From.ID)
+	items := make([]domain.Item, len(commandFromTg)-1)
+	for _, itemName := range commandFromTg[1:] {
+		items = append(items, domain.Item{
+			Name:   itemName,
+			Amount: 1,
+		})
+	}
+	err := h.cartService.AddCartItems(in.Ctx, items, int64(id), in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return

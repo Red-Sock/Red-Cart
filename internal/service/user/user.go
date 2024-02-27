@@ -3,21 +3,20 @@ package user
 import (
 	"context"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
-	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
 type UsersService struct {
-	userData data.Users
+	userData domain.UserRepo
 }
 
-func New(uD data.Users) *UsersService {
+func New(uD domain.UserRepo) *UsersService {
 	return &UsersService{
 		userData: uD,
 	}
 }
 
-func (u *UsersService) Start(ctx context.Context, newUser user.User) (message string, err error) {
+func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message string, err error) {
 	user, err := u.userData.Get(ctx, newUser.Id)
 	if err != nil {
 		return "", err

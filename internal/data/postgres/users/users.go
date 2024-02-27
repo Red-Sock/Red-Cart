@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Red-Sock/Red-Cart/internal/clients/postgres"
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
 type Users struct {
@@ -18,7 +18,7 @@ func New(conn postgres.Conn) *Users {
 	return &Users{conn: conn}
 }
 
-func (u *Users) Upsert(ctx context.Context, user user.User) error {
+func (u *Users) Upsert(ctx context.Context, user domain.User) error {
 	_, err := u.conn.Exec(ctx, `
 INSERT INTO tg_users
 	    (tg_id,
@@ -41,8 +41,8 @@ VALUES	($1,
 	return nil
 }
 
-func (u *Users) Get(ctx context.Context, userId int64) (user.User, error) {
-	var dbUser user.User
+func (u *Users) Get(ctx context.Context, userId int64) (domain.User, error) {
+	var dbUser domain.User
 	err := u.conn.QueryRow(ctx, `
 SELECT 
     tg_id,
@@ -63,7 +63,7 @@ WHERE tg_id = $1`,
 	}
 
 	if err != nil {
-		return user.User{}, errors.Wrap(err, "error getting user from database")
+		return domain.User{}, errors.Wrap(err, "error getting user from database")
 	}
 
 	return dbUser, nil

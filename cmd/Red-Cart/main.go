@@ -37,17 +37,13 @@ func main() {
 		cancel()
 		return nil
 	})
-	//test
-	//db := inmemory.New()
 
 	conn, err := pgclient.New(ctx, cfg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	dbSql := postgres.New(conn)
-	srv := service.New(dbSql)
 
-	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *srv)
+	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *service.New(postgres.New(conn)))
 	err = tg.Start(ctx)
 	if err != nil {
 		logrus.Fatalf("error starting telegram server %s", err)

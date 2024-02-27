@@ -6,7 +6,7 @@ import (
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
@@ -31,7 +31,7 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	newUser := user.User{
+	newUser := domain.User{
 		Id:        in.From.ID,
 		UserName:  in.From.UserName,
 		FirstName: in.From.FirstName,

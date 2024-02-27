@@ -1,6 +1,10 @@
 package data
 
+import (
+	"github.com/Red-Sock/Red-Cart/internal/domain"
+)
+
 type Storage interface {
-	User() Users
-	Cart() Carts
+	User() domain.UserRepo
+	Cart() domain.CartRepo
 }

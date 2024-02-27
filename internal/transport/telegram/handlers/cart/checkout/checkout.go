@@ -39,18 +39,19 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	cartItem, err := h.cartService.ShowCartItem(in.Ctx, in.From.ID)
+	usersItems, err := h.cartService.ShowCartItem(in.Ctx, in.From.ID)
 	var outMessageBuilder strings.Builder
-	for _, item := range cartItem {
+	for userID, items := range usersItems {
 		outMessageBuilder.WriteString("User: ")
-		outMessageBuilder.WriteString(strconv.FormatInt(item.UserID, 10))
+		outMessageBuilder.WriteString(strconv.FormatInt(userID, 10))
 		outMessageBuilder.WriteString(" 🕐\n")
-		for _, name := range item.ItemNames {
-			outMessageBuilder.WriteString(name)
+
+		for _, item := range items {
+			outMessageBuilder.WriteString(item.Name)
 			outMessageBuilder.WriteString("\n")
 		}
 
-		msg := response.NewMessageToChat("Подтверждать будешь пес?", item.UserID)
+		msg := response.NewMessageToChat("Подтверждать будешь пес?", userID)
 		msg.Keys = &keyboard.InlineKeyboard{}
 
 		msg.Keys.AddButton("✅", "/accept")

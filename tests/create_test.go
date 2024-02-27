@@ -10,7 +10,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/stretchr/testify/require"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/user"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/create"
 	"github.com/Red-Sock/Red-Cart/tests/mocks"
 )
@@ -50,7 +50,7 @@ func Test_Create(t *testing.T) {
 						},
 					},
 				}
-				newUser := user.User{
+				newUser := domain.User{
 					Id: userId,
 				}
 				err := app.Db.User().Upsert(ourContext, newUser)
@@ -72,7 +72,7 @@ func Test_Create(t *testing.T) {
 
 				userId := GetUserID()
 
-				newUser := user.User{
+				newUser := domain.User{
 					Id: userId,
 				}
 				err := app.Db.User().Upsert(ourContext, newUser)
