@@ -68,7 +68,7 @@ func Test_Start(t *testing.T) {
 
 				userId := GetUserID()
 
-				err := app.Db.User().Upsert(ourContext, domain.User{Id: userId})
+				err := app.Db.User().Upsert(ourContext, domain.User{ID: userId})
 				require.NoError(t, err)
 
 				a.In = &model.MessageIn{

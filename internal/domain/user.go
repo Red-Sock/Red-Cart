@@ -10,7 +10,7 @@ type UserRepo interface {
 }
 
 type User struct {
-	Id        int64
+	ID        int64
 	UserName  string
 	FirstName string
 	LastName  string

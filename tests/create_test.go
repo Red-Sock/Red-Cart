@@ -51,7 +51,7 @@ func Test_Create(t *testing.T) {
 					},
 				}
 				newUser := domain.User{
-					Id: userId,
+					ID: userId,
 				}
 				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")
@@ -73,7 +73,7 @@ func Test_Create(t *testing.T) {
 				userId := GetUserID()
 
 				newUser := domain.User{
-					Id: userId,
+					ID: userId,
 				}
 				err := app.Db.User().Upsert(ourContext, newUser)
 				require.NoError(t, err, "error creating test cart")

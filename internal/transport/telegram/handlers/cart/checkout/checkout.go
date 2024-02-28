@@ -39,7 +39,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	usersItems, err := h.cartService.ShowCartItem(in.Ctx, in.From.ID)
+	usersItems, err := h.cartService.ListPersonItems(in.Ctx, in.From.ID)
 	var outMessageBuilder strings.Builder
 	for userID, items := range usersItems {
 		outMessageBuilder.WriteString("User: ")

@@ -12,7 +12,6 @@ import (
 
 	postgresclient "github.com/Red-Sock/Red-Cart/internal/clients/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/config"
-	"github.com/Red-Sock/Red-Cart/internal/data/inmemory"
 	"github.com/Red-Sock/Red-Cart/internal/data/postgres"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -34,10 +33,6 @@ func CreateTestApp(options ...appOption) *App {
 	}
 
 	return a
-}
-
-func UseInMemoryDb(a *App) {
-	a.Db = inmemory.New()
 }
 
 func UseServiceV1(a *App) {

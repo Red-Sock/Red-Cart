@@ -8,3 +8,8 @@ type StartMessagePayload struct {
 
 	Msg string
 }
+
+type UserCart struct {
+	User User
+	Cart Cart
+}

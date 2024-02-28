@@ -29,7 +29,7 @@ VALUES	($1,
         $2,
         $3,
         $4)`,
-		user.Id,
+		user.ID,
 		user.UserName,
 		user.FirstName,
 		user.LastName,
@@ -44,16 +44,16 @@ VALUES	($1,
 func (u *Users) Get(ctx context.Context, userId int64) (*domain.User, error) {
 	var dbUser domain.User
 	err := u.conn.QueryRow(ctx, `
-SELECT 
-    tg_id,
-    user_name,
-    first_name,
-    last_name
-    FROM tg_users
-WHERE tg_id = $1`,
+		SELECT 
+			tg_id,
+			user_name,
+			first_name,
+			last_name
+		FROM tg_users
+		WHERE tg_id = $1`,
 		userId,
 	).Scan(
-		&dbUser.Id,
+		&dbUser.ID,
 		&dbUser.UserName,
 		&dbUser.FirstName,
 		&dbUser.LastName,

@@ -8,4 +8,5 @@ type TgApi interface {
 	Start() error
 	Stop()
 	AddCommandHandler(handler gotg.CommandHandler)
+	SetDefaultCommandHandler(h gotg.CommandHandler)
 }

@@ -3,11 +3,11 @@
 package telegram
 
 import (
-	"github.com/Red-Sock/go_tg/client"
+	"github.com/Red-Sock/go_tg"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
 )
 
-func New(cfg *config.Config) *client.Bot {
-	return client.NewBot(cfg.GetString(config.ServerTelegramAPIKey))
+func New(cfg *config.Config) *go_tg.Bot {
+	return go_tg.NewBot(cfg.GetString(config.ServerTelegramAPIKey))
 }

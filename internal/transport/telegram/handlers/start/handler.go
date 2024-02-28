@@ -15,25 +15,19 @@ const Command = "/start"
 
 type Handler struct {
 	userSrv service.UserService
+	cartSrv service.CartService
 }
 
-func New(userSrv service.UserService) *Handler {
+func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 	return &Handler{
 		userSrv: userSrv,
+		cartSrv: cartSrv,
 	}
-}
-
-func (h *Handler) GetDescription() string {
-	return "returns just hello"
-}
-
-func (h *Handler) GetCommand() string {
-	return Command
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	newUser := domain.User{
-		Id:        in.From.ID,
+		ID:        in.From.ID,
 		UserName:  in.From.UserName,
 		FirstName: in.From.FirstName,
 		LastName:  in.From.LastName,
@@ -49,7 +43,23 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 Корзина по умолчанию: %d
 
 Для добавления продуктов просто введите их название
-`, startMessage.Cart.Id))
+`, startMessage.Cart.ID))
 
 	out.SendMessage(msg)
+
+	out.SendMessage(&response.DeleteMessage{
+		ChatId:    in.Chat.ID,
+		MessageId: int64(in.MessageID),
+	})
+
+	//out.SendMessage(cartMsg)
+
+}
+
+func (h *Handler) GetDescription() string {
+	return "returns just hello"
+}
+
+func (h *Handler) GetCommand() string {
+	return Command
 }

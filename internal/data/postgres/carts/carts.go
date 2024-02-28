@@ -3,6 +3,7 @@ package carts
 import (
 	"context"
 
+	sq "github.com/Masterminds/squirrel"
 	errors "github.com/Red-Sock/trace-errors"
 	"github.com/jackc/pgx/v5"
 
@@ -10,49 +11,92 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
-type Carts struct {
+type Repo struct {
 	conn postgres.Conn
 }
 
-func New(conn postgres.Conn) *Carts {
-	return &Carts{conn: conn}
+func New(conn postgres.Conn) *Repo {
+	return &Repo{conn: conn}
 }
 
-func (c *Carts) GetById(ctx context.Context, cartId int64) (domain.Cart, error) {
-	var dbCart domain.Cart
+func (c *Repo) Create(ctx context.Context, idOwner int64) (id int64, err error) {
+	err = c.conn.QueryRow(ctx, `
+	INSERT INTO carts
+	    (owner_id)
+	VALUES	(   $1)
+	
+	RETURNING id`,
+		idOwner,
+	).Scan(&id)
+	if err != nil {
+		return 0, errors.Wrap(err, "error creating cart")
+	}
 
+	return id, nil
+}
+
+func (c *Repo) SetDefaultCart(ctx context.Context, userID int64, cartID int64) error {
+	_, err := c.conn.Exec(ctx, `
+	UPDATE carts_users SET is_default = (cart_id = $1) WHERE user_id = $2
+`, cartID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Repo) LinkUserToCart(ctx context.Context, userID int64, cartID int64) error {
+	_, err := c.conn.Exec(ctx, `
+	INSERT INTO carts_users
+			(user_id, cart_id, is_default) 
+	VALUES  ($1, $2, $3)
+	`, userID, cartID, false)
+	if err != nil {
+		return errors.Wrap(err, "error executing db query")
+	}
+
+	return err
+}
+
+func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Cart, error) {
+	var cart domain.Cart
 	err := c.conn.QueryRow(ctx, `
-	SELECT 
-	    id, 
-	    owner_id 
-	FROM carts
-	WHERE id = $1`,
-		cartId).
+		SELECT
+			cu.cart_id,
+			c.chat_id,
+			c.message_id
+		FROM carts_users cu
+		LEFT JOIN public.carts c ON c.id = cu.cart_id
+		WHERE cu.user_id = $1
+		AND   cu.is_default`,
+		userID).
 		Scan(
-			&dbCart.Id,
-			&dbCart.OwnerId)
+			&cart.ID,
+			&cart.ChatID,
+			&cart.MessageID,
+		)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return dbCart, nil
+			return domain.Cart{}, nil
 		}
 
-		return domain.Cart{}, errors.Wrap(err, "error getting cart by ownerId from database")
+		return domain.Cart{}, errors.Wrap(err, "error getting user's default cart")
 	}
-	return dbCart, nil
+
+	return cart, nil
 }
 
-func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.Cart, error) {
+func (c *Repo) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.Cart, error) {
 	var dbCart domain.Cart
 	err := c.conn.QueryRow(ctx, `
 	SELECT 
-		id,
-		owner_id
+		id
 	FROM carts
 	WHERE owner_id = $1`,
 		ownerId).
 		Scan(
-			&dbCart.Id,
-			&dbCart.OwnerId)
+			&dbCart.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -63,36 +107,30 @@ func (c *Carts) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.Cart, 
 	return &dbCart, nil
 }
 
-func (c *Carts) Create(ctx context.Context, idOwner int64) (id int64, err error) {
-	_, err = c.conn.Exec(ctx, `
-	INSERT INTO carts
-	    (owner_id)
-	VALUES	(   $1)`,
-		idOwner,
-	)
-	if err != nil {
-		return 0, errors.Wrap(err, "error creating cart")
+func (c *Repo) AddCartItems(ctx context.Context, items []domain.Item, cartId int64, userId int64) error {
+	q := sq.Insert("cart_items").
+		Columns(
+			"cart_id",
+			"item_name",
+			"amount",
+			"user_id",
+		).
+		Suffix(`
+ON CONFLICT ( cart_id, item_name, user_id)
+DO UPDATE SET 
+amount = cart_items.amount+excluded.amount`).
+		PlaceholderFormat(sq.Dollar)
+
+	for _, item := range items {
+		q = q.Values(cartId, item.Name, item.Amount, userId)
 	}
 
-	dbCart, err := c.GetByOwnerId(ctx, idOwner)
+	sql, args, err := q.ToSql()
 	if err != nil {
-		return 0, errors.Wrap(err, "error creating cart")
+		return errors.Wrap(err, "error assembling sql")
 	}
 
-	return dbCart.Id, nil
-}
-
-func (c *Carts) AddCartItems(ctx context.Context, items []domain.Item, cartId int64, userId int64) error {
-	_, err := c.conn.CopyFrom(ctx,
-		[]string{"cart_items"},
-		[]string{"cart_id", "item_name", "amount", "user_id"},
-		pgx.CopyFromSlice(len(items), func(i int) ([]any, error) {
-			if i >= len(items) {
-				return nil, pgx.ErrTooManyRows
-			}
-			return []any{cartId, items[i].Name, items[i].Amount, userId}, nil
-		}),
-	)
+	_, err = c.conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return errors.Wrap(err, "error add cartItem")
 	}
@@ -100,7 +138,38 @@ func (c *Carts) AddCartItems(ctx context.Context, items []domain.Item, cartId in
 	return nil
 }
 
-func (c *Carts) ListCartItems(ctx context.Context, ownerId int64) (map[int64][]domain.Item, error) {
+func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, error) {
+	row, err := c.conn.Query(ctx, `
+	SELECT 
+		item_name, 
+		user_id
+	FROM cart_items
+	WHERE cart_id = $1`,
+		id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+
+		return nil, errors.Wrap(err, "error getting cart by ownerId from database")
+	}
+
+	var cartItem []domain.Item
+	for row.Next() {
+		item := domain.Item{}
+		var userID int64
+		err = row.Scan(&item.Name, &userID)
+		if err != nil {
+			return nil, errors.Wrap(err, "error getting cart by ownerId from database")
+		}
+
+		cartItem = append(cartItem, item)
+	}
+
+	return cartItem, nil
+}
+
+func (c *Repo) ListCartItemsWithRequesters(ctx context.Context, ownerId int64) (map[int64][]domain.Item, error) {
 	var dbCart *domain.Cart
 	dbCart, err := c.GetByOwnerId(ctx, ownerId)
 	if err != nil {
@@ -109,10 +178,11 @@ func (c *Carts) ListCartItems(ctx context.Context, ownerId int64) (map[int64][]d
 
 	row, err := c.conn.Query(ctx, `
 	SELECT 
-		item_name,user_id
+		item_name, 
+		user_id
 	FROM cart_items
 	WHERE cart_id = $1`,
-		dbCart.Id)
+		dbCart.ID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -132,10 +202,11 @@ func (c *Carts) ListCartItems(ctx context.Context, ownerId int64) (map[int64][]d
 
 		cartItem[userID] = append(cartItem[userID], item)
 	}
+
 	return cartItem, nil
 }
 
-func (c *Carts) GetUser(ctx context.Context, userId int64) (domain.User, error) {
+func (c *Repo) GetUser(ctx context.Context, userId int64) (domain.User, error) {
 	var dbUser domain.User
 	err := c.conn.QueryRow(ctx, `
 	SELECT 
@@ -147,7 +218,7 @@ func (c *Carts) GetUser(ctx context.Context, userId int64) (domain.User, error) 
 	WHERE tg_id = $1`,
 		userId,
 	).Scan(
-		&dbUser.Id,
+		&dbUser.ID,
 		&dbUser.UserName,
 		&dbUser.FirstName,
 		&dbUser.LastName,
@@ -161,4 +232,19 @@ func (c *Carts) GetUser(ctx context.Context, userId int64) (domain.User, error) 
 	}
 
 	return dbUser, nil
+}
+
+func (c *Repo) UpdateCart(ctx context.Context, cart domain.Cart) error {
+	_, err := c.conn.Exec(ctx, `
+		UPDATE carts
+		SET
+		    chat_id = $1,
+		    message_id = $2 
+		WHERE id = $3
+`, cart.ChatID, cart.MessageID, cart.ID)
+	if err != nil {
+		return errors.Wrap(err, "error updating cart")
+	}
+
+	return nil
 }

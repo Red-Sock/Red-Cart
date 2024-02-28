@@ -29,45 +29,23 @@ func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error
 		return "", errors.New("Ошибка БД при получения корзины по Id")
 	}
 
-	if cart.OwnerId != 0 {
-		return "", errors.New(fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id))
+	if cart != nil {
+		return "", errors.New(fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.ID))
 	}
 
-	id, err := c.cartsData.Create(ctx, idOwner)
+	cartId, err := c.cartsData.Create(ctx, idOwner)
 	if err != nil {
-		return "", errors.Wrap(err, "error Creating cart")
+		return "", errors.Wrap(err, "error creating cart")
 	}
 
-	return fmt.Sprintf(msgString, id, id), nil
-}
-
-func (c *CartsService) AddCartItems(ctx context.Context, items []domain.Item, cardId int64, userId int64) error {
-	cartFromDB, err := c.cartsData.GetById(ctx, cardId)
+	err = c.cartsData.SetDefaultCart(ctx, idOwner, cartId)
 	if err != nil {
-		return err
+		return "", errors.Wrap(err, "error setting default cart")
 	}
 
-	if cartFromDB.Id == 0 {
-		outMsg := fmt.Sprintf("Корзины с id = %d не существует", cardId)
-		return errors.New(outMsg)
-	}
-
-	err = c.cartsData.AddCartItems(ctx, items, cardId, userId)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return fmt.Sprintf(msgString, cartId, cartId), nil
 }
 
-func (c *CartsService) GetByCartId(ctx context.Context, cartId int64) (domain.Cart, error) {
-	return c.cartsData.GetById(ctx, cartId)
-}
-
-func (c *CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (*domain.Cart, error) {
-	return c.cartsData.GetByOwnerId(ctx, idOwner)
-}
-
-func (c *CartsService) ShowCartItem(ctx context.Context, idOwner int64) (map[int64][]domain.Item, error) {
-	return c.cartsData.ListCartItems(ctx, idOwner)
+func (c *CartsService) UpdateMessageRef(ctx context.Context, cart domain.Cart) error {
+	return c.cartsData.UpdateCart(ctx, cart)
 }

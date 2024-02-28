@@ -52,11 +52,11 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 			Amount: 1,
 		})
 	}
-	err := h.cartService.AddCartItems(in.Ctx, items, int64(id), in.From.ID)
-	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
-	}
+	//err := h.cartService.AddToDefaultCart(in.Ctx, items, int64(id), in.From.ID)
+	//if err != nil {
+	//	out.SendMessage(response.NewMessage(err.Error()))
+	//	return
+	//}
 
 	out.SendMessage(response.NewMessage("Предметы были успешно добавлены в корзину!"))
 }
