@@ -141,7 +141,8 @@ amount = cart_items.amount+excluded.amount`).
 func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, error) {
 	row, err := c.conn.Query(ctx, `
 	SELECT 
-		item_name, 
+		item_name,
+		amount,
 		user_id
 	FROM cart_items
 	WHERE cart_id = $1`,
@@ -158,7 +159,7 @@ func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, erro
 	for row.Next() {
 		item := domain.Item{}
 		var userID int64
-		err = row.Scan(&item.Name, &userID)
+		err = row.Scan(&item.Name, &item.Amount, &userID)
 		if err != nil {
 			return nil, errors.Wrap(err, "error getting cart by ownerId from database")
 		}
@@ -234,7 +235,7 @@ func (c *Repo) GetUser(ctx context.Context, userId int64) (domain.User, error) {
 	return dbUser, nil
 }
 
-func (c *Repo) UpdateCart(ctx context.Context, cart domain.Cart) error {
+func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.Cart) error {
 	_, err := c.conn.Exec(ctx, `
 		UPDATE carts
 		SET

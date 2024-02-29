@@ -9,15 +9,14 @@ type CartRepo interface {
 	SetDefaultCart(ctx context.Context, userID int64, cartID int64) error
 	LinkUserToCart(ctx context.Context, userID int64, cartID int64) error
 
-	GetByOwnerId(ctx context.Context, id int64) (*Cart, error)
-
 	ListCartItems(ctx context.Context, cartId int64) ([]Item, error)
-	ListCartItemsWithRequesters(ctx context.Context, cartId int64) (map[int64][]Item, error)
 
 	AddCartItems(ctx context.Context, items []Item, cardId int64, userId int64) error
 
+	UpdateCartReference(ctx context.Context, cart Cart) error
+
 	GetUserDefaultCart(ctx context.Context, id int64) (Cart, error)
-	UpdateCart(ctx context.Context, cart Cart) error
+	GetByOwnerId(ctx context.Context, id int64) (*Cart, error)
 }
 
 type CartFilter struct {

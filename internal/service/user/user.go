@@ -50,6 +50,12 @@ func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message 
 
 	if cart != nil {
 		message.Cart = *cart
+		message.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.ID)
+		if err != nil {
+			return domain.StartMessagePayload{
+				Msg: domain.DbErrorMsg,
+			}, errors.Wrap(err, "error getting cart items by owner")
+		}
 	} else {
 		message.Cart.ID, err = u.cartData.Create(ctx, newUser.ID)
 		if err != nil {
@@ -71,6 +77,13 @@ func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message 
 			}, errors.Wrap(err, "error setting default cart")
 		}
 	}
+
+	message.Msg += fmt.Sprintf(` 🛒
+
+Корзина по умолчанию: %d
+
+Для добавления продуктов просто введите их название
+`, message.Cart.ID)
 
 	return message, nil
 }
@@ -107,8 +120,4 @@ func (u *UsersService) AddToDefaultCart(ctx context.Context, items []domain.Item
 	}
 
 	return cart, nil
-}
-
-func (u *UsersService) getUser() {
-
 }

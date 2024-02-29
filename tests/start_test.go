@@ -37,7 +37,7 @@ func Test_Start(t *testing.T) {
 		"OK_FIRST_TIME": {
 			create: func() (a arguments) {
 				app := CreateTestApp(UsePgDb, UseServiceV1)
-				a.h = start.New(app.Srv.User())
+				a.h = start.New(app.Srv.User(), app.Srv.Cart())
 
 				userId := GetUserID()
 
@@ -64,7 +64,7 @@ func Test_Start(t *testing.T) {
 		"OK_USER_EXISTS": {
 			create: func() (a arguments) {
 				app := CreateTestApp(UsePgDb, UseServiceV1)
-				a.h = start.New(app.Srv.User())
+				a.h = start.New(app.Srv.User(), app.Srv.Cart())
 
 				userId := GetUserID()
 

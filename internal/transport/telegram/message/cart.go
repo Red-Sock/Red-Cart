@@ -22,11 +22,9 @@ func CartFromDomain(cart domain.UserCart) interfaces.MessageOut {
 
 	if len(cart.Cart.Items) != 0 {
 		keys = &keyboard.InlineKeyboard{}
-		keys.Columns = 3
+		keys.Columns = 1
 		for _, item := range cart.Cart.Items {
-			keys.AddButton(item.Name+"-"+strconv.FormatUint(uint64(item.Amount), 10), "/start")
-			keys.AddButton("+", "/start")
-			keys.AddButton("-", "/start")
+			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", "/edit "+item.Name)
 		}
 	}
 

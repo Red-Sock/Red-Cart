@@ -44,22 +44,14 @@ func (d *DefaultHandler) Handle(in *model.MessageIn, out tgapi.Chat) {
 
 	msg := message.CartFromDomain(userCart)
 
-	oldChatID, oldMsgID := msg.GetChatId(), msg.GetMessageId()
 	out.SendMessage(msg)
-	newChatId, newMsgId := msg.GetChatId(), msg.GetMessageId()
 
-	if oldChatID == newChatId && oldMsgID == newMsgId {
-		return
-	}
-
-	userCart.Cart.ChatID = &newChatId
-	userCart.Cart.MessageID = &newMsgId
-
-	err = d.cartService.UpdateMessageRef(in.Ctx, userCart.Cart)
+	err = d.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
+
 }
 
 func (d *DefaultHandler) GetDescription() string {
