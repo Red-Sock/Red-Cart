@@ -14,6 +14,31 @@ type UsersService struct {
 	cartData domain.CartRepo
 }
 
+func (u *UsersService) GetDefaultCart(ctx context.Context, userID int64) (resp domain.UserCart, err error) {
+	user, err := u.userData.Get(ctx, userID)
+	if err != nil {
+		return domain.UserCart{}, err
+	}
+
+	if user == nil {
+		return domain.UserCart{}, errors.New("no such user")
+	}
+
+	resp.User = *user
+
+	resp.Cart, err = u.cartData.GetUserDefaultCart(ctx, userID)
+	if err != nil {
+		return domain.UserCart{}, err
+	}
+
+	resp.Cart.Items, err = u.cartData.ListCartItems(ctx, resp.Cart.ID)
+	if err != nil {
+		return domain.UserCart{}, err
+	}
+
+	return resp, nil
+}
+
 func New(uD domain.UserRepo, cartData domain.CartRepo) *UsersService {
 	return &UsersService{
 		userData: uD,
@@ -51,31 +76,13 @@ func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message 
 	if cart != nil {
 		message.Cart = *cart
 		message.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.ID)
-		if err != nil {
-			return domain.StartMessagePayload{
-				Msg: domain.DbErrorMsg,
-			}, errors.Wrap(err, "error getting cart items by owner")
-		}
 	} else {
-		message.Cart.ID, err = u.cartData.Create(ctx, newUser.ID)
-		if err != nil {
-			return domain.StartMessagePayload{
-				Msg: domain.DbErrorMsg,
-			}, errors.Wrap(err, "error creating cart")
-		}
-		err = u.cartData.LinkUserToCart(ctx, newUser.ID, message.Cart.ID)
-		if err != nil {
-			return domain.StartMessagePayload{
-				Msg: domain.DbErrorMsg,
-			}, errors.Wrap(err, "error linking cart")
-		}
-
-		err = u.cartData.SetDefaultCart(ctx, newUser.ID, message.Cart.ID)
-		if err != nil {
-			return domain.StartMessagePayload{
-				Msg: domain.DbErrorMsg,
-			}, errors.Wrap(err, "error setting default cart")
-		}
+		message.Cart.ID, err = u.createCartForUser(ctx, newUser)
+	}
+	if err != nil {
+		return domain.StartMessagePayload{
+			Msg: domain.DbErrorMsg,
+		}, err
 	}
 
 	message.Msg += fmt.Sprintf(` 🛒
@@ -120,4 +127,22 @@ func (u *UsersService) AddToDefaultCart(ctx context.Context, items []domain.Item
 	}
 
 	return cart, nil
+}
+
+func (u *UsersService) createCartForUser(ctx context.Context, user domain.User) (int64, error) {
+	cartID, err := u.cartData.Create(ctx, user.ID)
+	if err != nil {
+		return 0, errors.Wrap(err, "error creating cart")
+	}
+	err = u.cartData.LinkUserToCart(ctx, user.ID, cartID)
+	if err != nil {
+		return 0, errors.Wrap(err, "error linking cart")
+	}
+
+	err = u.cartData.SetDefaultCart(ctx, user.ID, cartID)
+	if err != nil {
+		return 0, errors.Wrap(err, "error setting default cart")
+	}
+
+	return cartID, nil
 }

@@ -1,4 +1,4 @@
-package increment
+package edit
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
@@ -7,7 +7,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
-const Command = "/add"
+const Command = "/edit"
 
 type Handler struct {
 	cartService service.CartService
@@ -22,7 +22,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 }
 
 func (h *Handler) GetDescription() string {
-	return "Increments something on given amount (or 1 by default"
+	return "Edit item in cart"
 }
 
 func (h *Handler) GetCommand() string {

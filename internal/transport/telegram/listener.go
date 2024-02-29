@@ -7,6 +7,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/tgapi"
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/increment"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/version"
@@ -25,6 +26,8 @@ func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Ser
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
 		s.bot.AddCommandHandler(start.New(srv.User(), srv.Cart()))
+
+		s.bot.AddCommandHandler(cart.New(srv.User(), srv.Cart()))
 
 		s.bot.AddCommandHandler(increment.New())
 
