@@ -2,7 +2,7 @@ package cart
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	errors "github.com/Red-Sock/trace-errors"
@@ -10,55 +10,108 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
-const msgString = `Корзина c id = %d была успешно создана.
-Друзья могут добавить корзину через
-/add_item %d имя_товара_1 имя_товара_2`
-
-type CartsService struct {
+type Service struct {
 	cartData domain.CartRepo
 }
 
-func New(cartData domain.CartRepo) *CartsService {
-	return &CartsService{
+func New(cartData domain.CartRepo) *Service {
+	return &Service{
 		cartData: cartData,
 	}
 }
 
-func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
-	cart, err := c.cartData.GetByOwnerId(ctx, idOwner)
-	if err != nil {
-		return "", errors.New("Ошибка БД при получения корзины по Id")
-	}
-
-	if cart != nil {
-		return "", errors.New(fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.ID))
-	}
-
-	cartId, err := c.cartData.Create(ctx, idOwner)
-	if err != nil {
-		return "", errors.Wrap(err, "error creating cart")
-	}
-
-	err = c.cartData.SetDefaultCart(ctx, idOwner, cartId)
-	if err != nil {
-		return "", errors.Wrap(err, "error setting default cart")
-	}
-
-	return fmt.Sprintf(msgString, cartId, cartId), nil
-}
-
-func (c *CartsService) SyncCartMessage(ctx context.Context, cart domain.Cart, msg tgapi.MessageOut) error {
-	if cart.MessageID == nil && cart.ChatID == nil {
+func (c *Service) SyncCartMessage(ctx context.Context, cart domain.Cart, msg tgapi.MessageOut) error {
+	if cart.MessageID != nil && *cart.MessageID == msg.GetMessageId() {
 		return nil
 	}
 
-	chatID, msgID := msg.GetChatId(), msg.GetMessageId()
+	cart.ChatID = msg.GetChatId()
+
+	msgID := msg.GetMessageId()
 	cart.MessageID = &msgID
-	cart.ChatID = &chatID
 
 	err := c.cartData.UpdateCartReference(ctx, cart)
 	if err != nil {
 		return errors.Wrap(err, "error updating cart chat reference")
+	}
+
+	return nil
+}
+
+func (c *Service) GetCartByChatId(ctx context.Context, chatID int64) (domain.UserCart, error) {
+	userCart, err := c.cartData.GetCartByChatId(ctx, chatID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error reading cart for chat")
+	}
+
+	return *userCart, nil
+}
+
+func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, userID int64) (domain.UserCart, error) {
+	cart, err := c.cartData.GetCartByID(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, err
+	}
+
+	if cart == nil {
+		return domain.UserCart{}, errors.New("no such cart")
+	}
+
+	err = c.cartData.AddCartItems(ctx, items, cartID, userID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error adding items to cart ")
+	}
+
+	cart.Cart.Items, err = c.cartData.ListCartItems(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error getting actual cart items")
+	}
+
+	return *cart, err
+}
+
+func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error) {
+	uc, err := c.cartData.GetCartByID(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, err
+	}
+
+	if uc == nil {
+		return domain.UserCart{}, errors.New("Cart doesn't exists")
+	}
+
+	uc.Cart.Items, err = c.cartData.ListCartItems(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "Can't get items for cart")
+	}
+
+	return *uc, nil
+}
+
+func (c *Service) AwaitNameChange(ctx context.Context, cartID int64, item domain.Item) (err error) {
+	req := domain.Cart{
+		ID:    cartID,
+		State: domain.CartStateEditingItemName,
+	}
+
+	req.StatePayload, err = json.Marshal(domain.ChangeItemNamePayload{ItemName: item.Name})
+	err = c.cartData.ChangeState(ctx, req)
+	if err != nil {
+		return errors.Wrap(err, "error changing state of cart")
+	}
+
+	return nil
+}
+
+func (c *Service) AwaitItemsAdded(ctx context.Context, cartID int64) (err error) {
+	req := domain.Cart{
+		ID:    cartID,
+		State: domain.CartStateAdding,
+	}
+
+	err = c.cartData.ChangeState(ctx, req)
+	if err != nil {
+		return errors.Wrap(err, "error changing state of cart")
 	}
 
 	return nil

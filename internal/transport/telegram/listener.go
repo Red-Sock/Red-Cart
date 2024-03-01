@@ -3,21 +3,25 @@ package telegram
 import (
 	"context"
 
+	"github.com/Red-Sock/go_tg"
+
 	"github.com/Red-Sock/Red-Cart/internal/config"
-	"github.com/Red-Sock/Red-Cart/internal/interfaces/tgapi"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit/rename"
+
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/increment"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit/increment"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/version"
 )
 
 type Server struct {
-	bot tgapi.TgApi
+	bot go_tg.TgApi
 }
 
-func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Server) {
+func NewServer(cfg *config.Config, bot go_tg.TgApi, srv service.Storage) (s *Server) {
 	s = &Server{
 		bot: bot,
 	}
@@ -29,9 +33,12 @@ func NewServer(cfg *config.Config, bot tgapi.TgApi, srv service.Storage) (s *Ser
 
 		s.bot.AddCommandHandler(cart.New(srv.User(), srv.Cart()))
 
+		s.bot.AddCommandHandler(edit.New(srv.User(), srv.Cart()))
+
+		s.bot.AddCommandHandler(rename.New(srv.User(), srv.Cart()))
 		s.bot.AddCommandHandler(increment.New())
 
-		s.bot.SetDefaultCommandHandler(handlers.NewDefaultCommandHandler(srv.User(), srv.Cart()))
+		s.bot.SetDefaultCommandHandler(handlers.NewDefaultCommandHandler(srv.User(), srv.Cart(), srv.Item()))
 	}
 
 	return s

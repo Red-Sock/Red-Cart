@@ -6,9 +6,8 @@ import (
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 )
-
-const Command = "/version"
 
 type Handler struct {
 	version string
@@ -20,14 +19,10 @@ func New(cfg *config.Config) *Handler {
 	}
 }
 
-func (h *Handler) GetDescription() string {
-	return "returns current app version as a response"
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+	out.SendMessage(response.NewMessage(in.Text + ": " + h.version))
 }
 
 func (h *Handler) GetCommand() string {
-	return Command
-}
-
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	out.SendMessage(response.NewMessage(in.Text + ": " + h.version))
+	return commands.Version
 }

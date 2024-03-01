@@ -8,9 +8,10 @@ import (
 	"github.com/Red-Sock/go_tg/model/response"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 )
 
-func CartFromDomain(cart domain.UserCart) interfaces.MessageOut {
+func CartFromDomain(chat interfaces.Chat, cart domain.UserCart) interfaces.MessageOut {
 	var text string
 	if len(cart.Cart.Items) == 0 {
 		text = "Корзина пуста"
@@ -24,22 +25,29 @@ func CartFromDomain(cart domain.UserCart) interfaces.MessageOut {
 		keys = &keyboard.InlineKeyboard{}
 		keys.Columns = 1
 		for _, item := range cart.Cart.Items {
-			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", "/edit "+item.Name)
+			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", commands.Edit+" "+item.Name)
 		}
 	}
 
-	if cart.Cart.MessageID != nil && cart.Cart.ChatID != nil {
-		return &response.EditMessage{
-			ChatId:    *cart.Cart.ChatID,
+	if cart.Cart.MessageID != nil {
+		out := &response.EditMessage{
+			ChatId:    cart.Cart.ChatID,
 			MessageId: *cart.Cart.MessageID,
 			Text:      text,
 			Keys:      keys,
 		}
+		chat.SendMessage(out)
+
+		if out.GetMessageId() != 0 {
+			return out
+		}
 	}
 
-	return &response.MessageOut{
+	out := &response.MessageOut{
 		ChatId: cart.User.ID,
 		Text:   text,
 		Keys:   keys,
 	}
+	chat.SendMessage(out)
+	return out
 }

@@ -7,10 +7,9 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 )
-
-const Command = "/start"
 
 type Handler struct {
 	userSrv service.UserService
@@ -32,7 +31,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		LastName:  in.From.LastName,
 	}
 
-	startMessage, err := h.userSrv.Start(in.Ctx, newUser)
+	startMessage, err := h.userSrv.Start(in.Ctx, newUser, in.Chat.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
@@ -45,23 +44,16 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		MessageId: int64(in.MessageID),
 	})
 
-	if startMessage.Cart.ChatID != nil && startMessage.Cart.MessageID != nil {
+	if startMessage.Cart.MessageID != nil {
 		out.SendMessage(&response.DeleteMessage{
-			ChatId:    *startMessage.Cart.ChatID,
+			ChatId:    startMessage.Cart.ChatID,
 			MessageId: *startMessage.Cart.MessageID,
 		})
 
-		startMessage.Cart.ChatID = nil
 		startMessage.Cart.MessageID = nil
 	}
 
-	cartMsg := message.CartFromDomain(startMessage.UserCart)
-
-	out.SendMessage(cartMsg)
-
-	chatID, msgID := cartMsg.GetChatId(), cartMsg.GetMessageId()
-	startMessage.Cart.MessageID = &msgID
-	startMessage.Cart.ChatID = &chatID
+	cartMsg := message.CartFromDomain(out, startMessage.UserCart)
 
 	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.Cart, cartMsg)
 	if err != nil {
@@ -75,5 +67,5 @@ func (h *Handler) GetDescription() string {
 }
 
 func (h *Handler) GetCommand() string {
-	return Command
+	return commands.Start
 }

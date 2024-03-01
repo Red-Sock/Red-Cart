@@ -5,9 +5,8 @@ import (
 	"github.com/Red-Sock/go_tg/model"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 )
-
-const Command = "/add"
 
 type Handler struct {
 	cartService service.CartService
@@ -21,10 +20,6 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 
 }
 
-func (h *Handler) GetDescription() string {
-	return "Increments something on given amount (or 1 by default"
-}
-
 func (h *Handler) GetCommand() string {
-	return Command
+	return commands.Increment
 }

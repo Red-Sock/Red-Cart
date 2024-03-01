@@ -9,44 +9,37 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
-type UsersService struct {
+type Service struct {
 	userData domain.UserRepo
 	cartData domain.CartRepo
 }
 
-func (u *UsersService) GetDefaultCart(ctx context.Context, userID int64) (resp domain.UserCart, err error) {
-	user, err := u.userData.Get(ctx, userID)
+func (u *Service) GetCartByChat(ctx context.Context, userID int64) (domain.UserCart, error) {
+	userCart, err := u.cartData.GetCartByChatId(ctx, userID)
 	if err != nil {
 		return domain.UserCart{}, err
 	}
 
-	if user == nil {
-		return domain.UserCart{}, errors.New("no such user")
+	if userCart == nil {
+		return domain.UserCart{}, errors.New("no such cart")
 	}
 
-	resp.User = *user
-
-	resp.Cart, err = u.cartData.GetUserDefaultCart(ctx, userID)
+	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
 	if err != nil {
 		return domain.UserCart{}, err
 	}
 
-	resp.Cart.Items, err = u.cartData.ListCartItems(ctx, resp.Cart.ID)
-	if err != nil {
-		return domain.UserCart{}, err
-	}
-
-	return resp, nil
+	return *userCart, nil
 }
 
-func New(uD domain.UserRepo, cartData domain.CartRepo) *UsersService {
-	return &UsersService{
+func New(uD domain.UserRepo, cartData domain.CartRepo) *Service {
+	return &Service{
 		userData: uD,
 		cartData: cartData,
 	}
 }
 
-func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message domain.StartMessagePayload, err error) {
+func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) (message domain.StartMessagePayload, err error) {
 	user, err := u.userData.Get(ctx, newUser.ID)
 	if err != nil {
 		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error creating new user")
@@ -66,18 +59,18 @@ func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message 
 		message.Msg = "Добро пожаловать!"
 	}
 
-	cart, err := u.cartData.GetByOwnerId(ctx, newUser.ID)
+	userCart, err := u.cartData.GetByOwnerId(ctx, newUser.ID)
 	if err != nil {
 		return domain.StartMessagePayload{
 			Msg: domain.DbErrorMsg,
 		}, errors.Wrap(err, "error getting cart by owner")
 	}
 
-	if cart != nil {
-		message.Cart = *cart
-		message.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.ID)
+	if userCart != nil {
+		message.Cart = userCart.Cart
+		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
 	} else {
-		message.Cart.ID, err = u.createCartForUser(ctx, newUser)
+		message.Cart.ID, err = u.createCartForUser(ctx, newUser, chatID)
 	}
 	if err != nil {
 		return domain.StartMessagePayload{
@@ -95,7 +88,7 @@ func (u *UsersService) Start(ctx context.Context, newUser domain.User) (message 
 	return message, nil
 }
 
-func (u *UsersService) AddToDefaultCart(ctx context.Context, items []domain.Item, userID int64) (cart domain.UserCart, err error) {
+func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, userID int64) (cart domain.UserCart, err error) {
 	user, err := u.userData.Get(ctx, userID)
 	if err != nil {
 		return domain.UserCart{}, errors.New("error getting user data")
@@ -129,11 +122,12 @@ func (u *UsersService) AddToDefaultCart(ctx context.Context, items []domain.Item
 	return cart, nil
 }
 
-func (u *UsersService) createCartForUser(ctx context.Context, user domain.User) (int64, error) {
-	cartID, err := u.cartData.Create(ctx, user.ID)
+func (u *Service) createCartForUser(ctx context.Context, user domain.User, chatID int64) (int64, error) {
+	cartID, err := u.cartData.Create(ctx, user.ID, chatID)
 	if err != nil {
 		return 0, errors.Wrap(err, "error creating cart")
 	}
+
 	err = u.cartData.LinkUserToCart(ctx, user.ID, cartID)
 	if err != nil {
 		return 0, errors.Wrap(err, "error linking cart")
