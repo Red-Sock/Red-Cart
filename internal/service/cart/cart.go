@@ -44,6 +44,11 @@ func (c *Service) GetCartByChatId(ctx context.Context, chatID int64) (domain.Use
 		return domain.UserCart{}, errors.Wrap(err, "error reading cart for chat")
 	}
 
+	userCart.Cart.Items, err = c.cartData.ListCartItems(ctx, userCart.Cart.ID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error reading cart items")
+	}
+
 	return *userCart, nil
 }
 
@@ -115,4 +120,8 @@ func (c *Service) AwaitItemsAdded(ctx context.Context, cartID int64) (err error)
 	}
 
 	return nil
+}
+
+func (c *Service) PurgeCart(ctx context.Context, cartId int64) error {
+	return c.cartData.PurgeCart(ctx, cartId)
 }

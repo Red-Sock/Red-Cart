@@ -20,6 +20,7 @@ func CartFromDomain(chat interfaces.Chat, cart domain.UserCart) interfaces.Messa
 	}
 
 	var keys *keyboard.InlineKeyboard
+	cartId := strconv.Itoa(int(cart.Cart.ChatID))
 
 	if len(cart.Cart.Items) != 0 {
 		keys = &keyboard.InlineKeyboard{}
@@ -27,6 +28,8 @@ func CartFromDomain(chat interfaces.Chat, cart domain.UserCart) interfaces.Messa
 		for _, item := range cart.Cart.Items {
 			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", commands.Edit+" "+item.Name)
 		}
+
+		keys.AddButton("Удалить товар / очистить корзину 🗑️", commands.Delete+" "+cartId)
 	}
 
 	if cart.Cart.MessageID != nil {

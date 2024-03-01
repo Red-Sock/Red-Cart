@@ -31,3 +31,16 @@ func (s *Repository) ChangeName(ctx context.Context, cartID int64, oldName, newN
 
 	return nil
 }
+
+func (s *Repository) Delete(ctx context.Context, cartID int64, itemName string) error {
+	_, err := s.conn.Exec(ctx, `
+		DELETE FROM cart_items 
+		WHERE cart_id = $1
+		AND item_name = $2
+`, cartID, itemName)
+	if err != nil {
+		return errors.Wrap(err, "error deleting name in db")
+	}
+
+	return nil
+}

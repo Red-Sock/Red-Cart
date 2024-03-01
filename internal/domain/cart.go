@@ -22,6 +22,7 @@ type CartRepo interface {
 	GetCartByID(ctx context.Context, id int64) (*UserCart, error)
 
 	ChangeState(ctx context.Context, req Cart) error
+	PurgeCart(ctx context.Context, cartId int64) error
 }
 
 type CartFilter struct {

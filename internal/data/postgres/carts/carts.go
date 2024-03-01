@@ -275,3 +275,16 @@ func (c *Repo) ChangeState(ctx context.Context, req domain.Cart) error {
 
 	return nil
 }
+
+func (c *Repo) PurgeCart(ctx context.Context, cartId int64) error {
+	_, err := c.conn.Exec(ctx, `
+		DELETE 
+		FROM cart_items
+	   	WHERE cart_id = $1
+`, cartId)
+	if err != nil {
+		return errors.Wrap(err, "error purging items in cart")
+	}
+
+	return nil
+}

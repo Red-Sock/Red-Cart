@@ -9,4 +9,8 @@ const (
 	Edit      = "/edit"
 	Rename    = "/rename"
 	Increment = "/increment"
+
+	Delete     = "/delete"
+	DeleteItem = "/delete_item"
+	Purge      = "/purge"
 )

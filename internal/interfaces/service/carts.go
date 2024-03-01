@@ -19,4 +19,5 @@ type CartService interface {
 
 	AwaitNameChange(ctx context.Context, cartID int64, item domain.Item) error
 	AwaitItemsAdded(ctx context.Context, cartID int64) error
+	PurgeCart(ctx context.Context, cartId int64) error
 }

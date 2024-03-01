@@ -6,7 +6,10 @@ import (
 	"github.com/Red-Sock/go_tg"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/delete_cart"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/delete_item"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit/rename"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/purge_cart"
 
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers"
@@ -37,6 +40,10 @@ func NewServer(cfg *config.Config, bot go_tg.TgApi, srv service.Storage) (s *Ser
 
 		s.bot.AddCommandHandler(rename.New(srv.User(), srv.Cart()))
 		s.bot.AddCommandHandler(increment.New())
+		s.bot.AddCommandHandler(delete_cart.New(srv.Cart()))
+		s.bot.AddCommandHandler(delete_item.New(srv.Item(), srv.Cart()))
+
+		s.bot.AddCommandHandler(purge_cart.New(srv.Cart()))
 
 		s.bot.SetDefaultCommandHandler(handlers.NewDefaultCommandHandler(srv.User(), srv.Cart(), srv.Item()))
 	}

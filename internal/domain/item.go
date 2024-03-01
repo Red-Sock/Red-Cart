@@ -6,6 +6,7 @@ import (
 
 type ItemRepo interface {
 	ChangeName(ctx context.Context, cartID int64, oldItemName, newItemName string) error
+	Delete(ctx context.Context, cartID int64, name string) error
 }
 
 type Item struct {
