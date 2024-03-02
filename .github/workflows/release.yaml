@@ -14,6 +14,7 @@ jobs:
         uses: RedSockActions/release_tag@v1.1.0
         with:
           token: ${{ github.token }}
+          config_path: config/config_template.yaml
     outputs:
       tag: ${{ steps.release.outputs.tag }}
 
