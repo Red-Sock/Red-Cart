@@ -45,7 +45,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	msg, err := message.EditFromCartItem(out, cart, *itemInCart)
+	msg, err := message.EditFromCartItem(in.Ctx, out, cart, *itemInCart)
 	if err != nil {
 		return err
 	}

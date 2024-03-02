@@ -24,7 +24,7 @@ func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCa
 	var err error
 	switch instruction {
 	case scripts.OpenSetting:
-		msg, err = message.CartSettings(out, userCart)
+		msg, err = message.CartSettings(in.Ctx, out, userCart)
 	case scripts.Clear:
 		msg, err = message.Delete(in.Ctx, out, userCart)
 	default:
