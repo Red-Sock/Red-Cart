@@ -11,7 +11,11 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 )
 
-func Delete(out tgapi.Chat, cart domain.UserCart) tgapi.MessageOut {
+func Delete(out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
+	if len(cart.Cart.Items) == 0 {
+		return nil, nil
+	}
+
 	cartIdStr := strconv.FormatUint(uint64(cart.Cart.ID), 10)
 
 	keys := keyboard.Keyboard{}
@@ -37,17 +41,15 @@ func Delete(out tgapi.Chat, cart domain.UserCart) tgapi.MessageOut {
 			Keys:      &keys,
 		}
 
-		out.SendMessage(msg)
+		err := out.SendMessage(msg)
 
-		if msg.GetMessageId() != 0 {
-			return msg
+		if err == nil {
+			return msg, err
 		}
 	}
 
 	msg := response.NewMessage(text)
 	msg.AddKeyboard(keys)
 
-	out.SendMessage(msg)
-
-	return msg
+	return msg, out.SendMessage(msg)
 }

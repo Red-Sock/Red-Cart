@@ -1,4 +1,4 @@
-package purge_cart
+package check
 
 import (
 	"strconv"
@@ -13,56 +13,51 @@ import (
 )
 
 type Handler struct {
+	itemService service.ItemService
 	cartService service.CartService
 }
 
-func New(cartService service.CartService) *Handler {
+func New(itemService service.ItemService, cartService service.CartService) *Handler {
 	return &Handler{
+		itemService: itemService,
 		cartService: cartService,
 	}
 }
 
-// Handle expects to have cart id as a given parameter
+// Handle - expects to have cart id and item name as an input argument
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < 1 {
-		return out.SendMessage(response.NewMessage("expecting to have a cart id as an argument"))
+	if len(in.Args) < 2 {
+		return out.SendMessage(response.NewMessage("expect to have 2 argements as input - cart id and item name"))
 	}
 
 	cartId, err := strconv.ParseInt(in.Args[0], 10, 64)
 	if err != nil {
-		return out.SendMessage(response.NewMessage("expected for cart id to be integer: " + err.Error()))
+		return out.SendMessage(response.NewMessage("cart id must be integer:" + err.Error()))
 	}
 
-	err = h.cartService.PurgeCart(in.Ctx, cartId)
+	err = h.itemService.Check(in.Ctx, cartId, in.Args[1])
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	cart, err := h.cartService.GetCartById(in.Ctx, cartId)
+	userCart, err := h.cartService.GetCartById(in.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, cart)
-	if err != nil {
-		return err
-	}
-
-	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
+	msg, err := message.OpenCart(in.Ctx, out, userCart)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	if !in.IsCallback {
-		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
-			MessageId: int64(in.MessageID),
-		})
+	err = h.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
+	if err != nil {
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	return nil
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Purge
+	return commands.Check
 }

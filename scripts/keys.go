@@ -17,4 +17,5 @@ const (
 	SettingIcon = "🛠️"
 	DeleteIcon  = "❌"
 	BinIcon     = "🗑️"
+	CheckedIcon = "✅"
 )

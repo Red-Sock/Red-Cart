@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     item_name TEXT,
     amount    INTEGER,
     user_id   INTEGER REFERENCES tg_users (tg_id),
+    checked   BOOL NOT NULL DEFAULT FALSE,
     UNIQUE (user_id, cart_id, item_name)
 );
 

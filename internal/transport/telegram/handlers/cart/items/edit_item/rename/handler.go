@@ -27,22 +27,19 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 // Handle expects to have 2 arguments:
 // in.Args[0] = cart id
 // in.Args[1] = name of product in cart
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if len(in.Args) < 2 {
-		out.SendMessage(response.NewMessage("Expected to have cart id and item name as arguments"))
-		return
+		return out.SendMessage(response.NewMessage("Expected to have cart id and item name as arguments"))
 	}
 
 	cartID, err := strconv.ParseInt(in.Args[0], 10, 64)
 	if err != nil {
-		out.SendMessage(response.NewMessage("Expected to have cart id as integer type:" + err.Error()))
-		return
+		return out.SendMessage(response.NewMessage("Expected to have cart id as integer type:" + err.Error()))
 	}
 
 	cart, err := h.cartService.GetCartById(in.Ctx, cartID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	var itemInCart *domain.Item
@@ -54,26 +51,28 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	}
 
 	if itemInCart == nil {
-		out.SendMessage(response.NewMessage("no item with such name"))
-		return
+		return out.SendMessage(response.NewMessage("no item with such name"))
 	}
 
-	msg := h.sendRenameMessage(cart.Cart, itemInCart.Name, out)
+	msg, err := h.sendRenameMessage(cart.Cart, itemInCart.Name, out)
+	if err != nil {
+		return out.SendMessage(response.NewMessage(err.Error()))
+	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	err = h.cartService.AwaitNameChange(in.Ctx, cartID, *itemInCart)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
+
+	return nil
 }
 
-func (h *Handler) sendRenameMessage(cart domain.Cart, oldItemName string, out tgapi.Chat) tgapi.MessageOut {
+func (h *Handler) sendRenameMessage(cart domain.Cart, oldItemName string, out tgapi.Chat) (tgapi.MessageOut, error) {
 	text := "Введите новое имя для " + oldItemName
 
 	if cart.MessageID != nil {
@@ -82,16 +81,16 @@ func (h *Handler) sendRenameMessage(cart domain.Cart, oldItemName string, out tg
 			Text:      text,
 			MessageId: *cart.MessageID,
 		}
-		out.SendMessage(msg)
+		err := out.SendMessage(msg)
 
-		if msg.GetMessageId() != 0 {
-			return msg
+		if err == nil {
+			return msg, nil
 		}
 	}
 
 	msg := response.NewMessage(text)
 
-	return msg
+	return msg, out.SendMessage(msg)
 }
 
 func (h *Handler) GetCommand() string {

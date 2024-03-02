@@ -157,7 +157,8 @@ func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, erro
 	SELECT 
 		item_name,
 		amount,
-		user_id
+		user_id,
+		checked
 	FROM cart_items
 	WHERE cart_id = $1`,
 		id)
@@ -173,7 +174,7 @@ func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, erro
 	for row.Next() {
 		item := domain.Item{}
 		var userID int64
-		err = row.Scan(&item.Name, &item.Amount, &userID)
+		err = row.Scan(&item.Name, &item.Amount, &userID, &item.Checked)
 		if err != nil {
 			return nil, errors.Wrap(err, "error getting cart by ownerId from database")
 		}

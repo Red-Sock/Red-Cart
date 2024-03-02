@@ -44,3 +44,31 @@ func (s *Repository) Delete(ctx context.Context, cartID int64, itemName string) 
 
 	return nil
 }
+
+func (s *Repository) Check(ctx context.Context, cartId int64, itemName string) error {
+	_, err := s.conn.Exec(ctx, `
+		UPDATE cart_items SET 
+			  checked = true
+		WHERE cart_id   = $1
+		AND   item_name = $2
+`, cartId, itemName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Repository) Uncheck(ctx context.Context, cartId int64, itemName string) error {
+	_, err := s.conn.Exec(ctx, `
+		UPDATE cart_items SET 
+			  checked = false
+		WHERE cart_id   = $1
+		AND   item_name = $2
+`, cartId, itemName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

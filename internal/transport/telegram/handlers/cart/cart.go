@@ -22,27 +22,30 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	userCart, err := h.userService.GetCartByChat(in.Ctx, in.From.ID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
+
 	}
 
 	if !in.IsCallback {
-		out.SendMessage(&response.DeleteMessage{
+		_ = out.SendMessage(&response.DeleteMessage{
 			ChatId:    in.Chat.ID,
 			MessageId: int64(in.MessageID),
 		})
 	}
 
-	msg := message.CartFromDomain(in.Ctx, out, userCart)
+	msg, err := message.OpenCart(in.Ctx, out, userCart)
+	if err != nil {
+		return err
+	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
+	return nil
 }
 
 func (h *Handler) GetDescription() string {

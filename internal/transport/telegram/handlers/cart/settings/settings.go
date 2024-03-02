@@ -20,18 +20,23 @@ func New(cartService service.CartService) *Handler {
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	cart, err := h.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, message.CartSettings(out, cart))
+	msg, err := message.CartSettings(out, cart)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return err
 	}
+
+	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
+	if err != nil {
+		return out.SendMessage(response.NewMessage(err.Error()))
+	}
+
+	return nil
 }
 
 func (h *Handler) GetCommand() string {

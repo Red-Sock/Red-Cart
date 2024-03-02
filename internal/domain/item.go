@@ -5,8 +5,10 @@ import (
 )
 
 type ItemRepo interface {
-	ChangeName(ctx context.Context, cartID int64, oldItemName, newItemName string) error
-	Delete(ctx context.Context, cartID int64, name string) error
+	ChangeName(ctx context.Context, cartId int64, oldItemName, newItemName string) error
+	Delete(ctx context.Context, cartId int64, itemName string) error
+	Check(ctx context.Context, cartId int64, itemName string) error
+	Uncheck(ctx context.Context, cartId int64, itemName string) error
 }
 
 type Item struct {

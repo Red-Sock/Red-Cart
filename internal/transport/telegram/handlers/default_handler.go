@@ -31,34 +31,44 @@ func NewDefaultCommandHandler(
 	}
 }
 
-func (d *DefaultHandler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (d *DefaultHandler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if len(in.Args) == 0 || in.Command != "" {
-		out.SendMessage(response.NewMessage("unknown functionality " + in.Command))
-		return
+		return out.SendMessage(response.NewMessage("unknown functionality " + in.Command))
 	}
 
-	if d.basicInputs(in, out) {
-		return
-	}
-
-	if d.cartInputs(in, out) {
-		return
-	}
-}
-
-func (d *DefaultHandler) cartInputs(in *model.MessageIn, out tgapi.Chat) bool {
 	userCart, err := d.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return true
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
+	ok, err := d.basicInputs(in, userCart, out)
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		return nil
+	}
+
+	ok, err = d.cartInputs(in, userCart, out)
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		return nil
+	}
+
+	return nil
+}
+
+func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
 	switch userCart.Cart.State {
 	case domain.CartStateAdding:
-		d.addItem(in, out, userCart)
+		return true, d.addItem(in, out, userCart)
 	case domain.CartStateEditingItemName:
-		d.editItemName(in, out, userCart)
+		return true, d.editItemName(in, out, userCart)
 	}
 
-	return false
+	return false, nil
 }

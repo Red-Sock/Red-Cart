@@ -9,10 +9,11 @@ const (
 
 	Edit      = "/edit"
 	Check     = "/check"
+	Uncheck   = "/uncheck"
 	Rename    = "/rename"
 	Increment = "/increment"
 
-	Delete     = "/delete"
+	ClearMenu  = "/clear"
 	DeleteItem = "/delete_item"
 	Purge      = "/purge"
 )

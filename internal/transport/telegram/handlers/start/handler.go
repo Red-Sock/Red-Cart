@@ -27,7 +27,7 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	newUser := domain.User{
 		ID:        in.From.ID,
 		UserName:  in.From.UserName,
@@ -37,12 +37,11 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 
 	startMessage, err := h.userSrv.Start(in.Ctx, newUser, in.Chat.ID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	if startMessage.Cart.MessageID != nil {
-		out.SendMessage(&response.DeleteMessage{
+		_ = out.SendMessage(&response.DeleteMessage{
 			ChatId:    startMessage.Cart.ChatID,
 			MessageId: *startMessage.Cart.MessageID,
 		})
@@ -52,19 +51,20 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 
 	h.startMessage(in, startMessage, out)
 
-	cartMsg := message.CartFromDomain(in.Ctx, out, startMessage.UserCart)
+	cartMsg, err := message.OpenCart(in.Ctx, out, startMessage.UserCart)
+	if err != nil {
+		return err
+	}
 
 	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.Cart, cartMsg)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	out.SendMessage(&response.DeleteMessage{
+	return out.SendMessage(&response.DeleteMessage{
 		ChatId:    in.Chat.ID,
 		MessageId: int64(in.MessageID),
 	})
-
 }
 
 func (h *Handler) startMessage(in *model.MessageIn, payload domain.StartMessagePayload, out tgapi.Chat) {
@@ -74,7 +74,7 @@ func (h *Handler) startMessage(in *model.MessageIn, payload domain.StartMessageP
 
 	keyboardReply := keyboard.Keyboard{IsReplyKeyboard: true}
 	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.OpenSetting), commands.CartSetting+" "+cartId)
-	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.Delete+" "+cartId)
+	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.ClearMenu+" "+cartId)
 
 	msg.AddKeyboard(keyboardReply)
 

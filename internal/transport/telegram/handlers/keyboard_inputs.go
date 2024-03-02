@@ -5,31 +5,51 @@ import (
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
 
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/delete_cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/settings"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func (d *DefaultHandler) basicInputs(in *model.MessageIn, out tgapi.Chat) bool {
+func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
 	instruction, ok := d.expectedInstructions[scripts.GetLang(in.From.LanguageCode)][in.Text]
 	if !ok {
-		return false
+		return false, nil
 	}
 
-	var handler tgapi.Handler
-
+	_ = out.SendMessage(&response.DeleteMessage{
+		ChatId:    in.Chat.ID,
+		MessageId: int64(in.MessageID),
+	})
+	var msg tgapi.MessageOut
+	var err error
 	switch instruction {
 	case scripts.OpenSetting:
-		handler = settings.New(d.cartService)
+		msg, err = message.CartSettings(out, userCart)
 	case scripts.Clear:
-		handler = delete_cart.New(d.cartService)
-		in.Text += " "
+		msg, err = message.Delete(out, userCart)
 	default:
-		out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
-		return true
+		return true, out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
 	}
 
-	handler.Handle(in, out)
+	if err != nil {
+		return true, err
+	}
 
-	return true
+	if msg == nil {
+		return true, nil
+	}
+
+	if !in.IsCallback {
+		_ = out.SendMessage(&response.DeleteMessage{
+			ChatId:    in.Chat.ID,
+			MessageId: int64(in.MessageID),
+		})
+	}
+
+	err = d.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
+	if err != nil {
+		return true, out.SendMessage(response.NewMessage(err.Error()))
+	}
+
+	return true, nil
 }

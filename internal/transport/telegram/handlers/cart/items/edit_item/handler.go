@@ -23,15 +23,14 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if len(in.Args) == 0 {
-		return
+		return nil
 	}
 
 	cart, err := h.userService.GetCartByChat(in.Ctx, in.Chat.ID)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	var itemInCart *domain.Item
@@ -43,16 +42,20 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	}
 
 	if itemInCart == nil {
-		return
+		return nil
 	}
 
-	msg := message.EditFromCartItem(out, cart, *itemInCart)
+	msg, err := message.EditFromCartItem(out, cart, *itemInCart)
+	if err != nil {
+		return err
+	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
 	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
+		return out.SendMessage(response.NewMessage(err.Error()))
 	}
+
+	return nil
 }
 
 func (h *Handler) GetCommand() string {

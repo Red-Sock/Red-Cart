@@ -19,8 +19,8 @@ func New(cfg *config.Config) *Handler {
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	out.SendMessage(response.NewMessage(in.Text + ": " + h.version))
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
+	return out.SendMessage(response.NewMessage(in.Text + ": " + h.version))
 }
 
 func (h *Handler) GetCommand() string {

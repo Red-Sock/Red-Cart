@@ -11,7 +11,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 )
 
-func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domain.Item) interfaces.MessageOut {
+func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domain.Item) (interfaces.MessageOut, error) {
 	msgTxt := item.Name + "( " + strconv.Itoa(int(item.Amount)) + " ) "
 
 	keys := keyboard.Keyboard{Columns: 2}
@@ -26,17 +26,15 @@ func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domai
 			Keys:      &keys,
 		}
 
-		chat.SendMessage(out)
+		err := chat.SendMessage(out)
 
-		if out.GetMessageId() != 0 {
-			return out
+		if err == nil {
+			return out, nil
 		}
 	}
 
 	msg := response.NewMessage(msgTxt)
 	msg.AddKeyboard(keys)
 
-	chat.SendMessage(msg)
-
-	return msg
+	return msg, chat.SendMessage(msg)
 }

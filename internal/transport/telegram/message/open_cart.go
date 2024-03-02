@@ -14,21 +14,30 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func CartFromDomain(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) interfaces.MessageOut {
+func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 
 	if len(cart.Cart.Items) == 0 {
 		text = scripts.Get(ctx, scripts.CartIsEmpty)
-		msg := response.NewMessage(text)
-		chat.SendMessage(msg)
 
-		return msg
+		var msg interfaces.MessageOut
+		if cart.Cart.MessageID != nil {
+			msg = &response.EditMessage{
+				ChatId:    cart.Cart.ChatID,
+				Text:      text,
+				MessageId: *cart.Cart.MessageID,
+			}
+		} else {
+			msg = response.NewMessage(text)
+		}
+
+		return msg, chat.SendMessage(msg)
 	}
 
 	text = "Корзина"
 
 	var keys *keyboard.Keyboard
-
+	cartId := strconv.Itoa(int(cart.Cart.ID))
 	if len(cart.Cart.Items) != 0 {
 		sort.Slice(cart.Cart.Items, func(i, j int) bool {
 			return cart.Cart.Items[i].Name < cart.Cart.Items[j].Name
@@ -36,7 +45,13 @@ func CartFromDomain(ctx context.Context, chat interfaces.Chat, cart domain.UserC
 		keys = &keyboard.Keyboard{}
 		keys.Columns = 1
 		for _, item := range cart.Cart.Items {
-			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", commands.Check+" "+item.Name)
+			itemName := item.Name + " ( " + strconv.FormatUint(uint64(item.Amount), 10) + " )"
+			if item.Checked {
+
+				keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+item.Name)
+			} else {
+				keys.AddButton(itemName, commands.Check+" "+cartId+" "+item.Name)
+			}
 		}
 	}
 
@@ -47,10 +62,9 @@ func CartFromDomain(ctx context.Context, chat interfaces.Chat, cart domain.UserC
 			Text:      text,
 			Keys:      keys,
 		}
-		chat.SendMessage(out)
-
-		if out.GetMessageId() != 0 {
-			return out
+		err := chat.SendMessage(out)
+		if err == nil {
+			return out, nil
 		}
 	}
 
@@ -59,11 +73,11 @@ func CartFromDomain(ctx context.Context, chat interfaces.Chat, cart domain.UserC
 		Text:   text,
 		Keys:   keys,
 	}
-	chat.SendMessage(out)
-	return out
+
+	return out, chat.SendMessage(out)
 }
 
-func CartSettings(chat interfaces.Chat, cart domain.UserCart) interfaces.MessageOut {
+func CartSettings(chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 	if len(cart.Cart.Items) == 0 {
 		text = "Корзина пуста"
@@ -90,10 +104,10 @@ func CartSettings(chat interfaces.Chat, cart domain.UserCart) interfaces.Message
 			Text:      text,
 			Keys:      keys,
 		}
-		chat.SendMessage(out)
+		err := chat.SendMessage(out)
 
-		if out.GetMessageId() != 0 {
-			return out
+		if err == nil {
+			return out, nil
 		}
 	}
 
@@ -102,6 +116,6 @@ func CartSettings(chat interfaces.Chat, cart domain.UserCart) interfaces.Message
 		Text:   text,
 		Keys:   keys,
 	}
-	chat.SendMessage(out)
-	return out
+
+	return out, chat.SendMessage(out)
 }

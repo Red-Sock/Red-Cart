@@ -16,8 +16,8 @@ func New() *Handler {
 	return &Handler{}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-
+func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
+	return nil
 }
 
 func (h *Handler) GetCommand() string {
