@@ -4,9 +4,11 @@ const (
 	Version = "/version"
 	Start   = "/start"
 
-	Cart = "/cart"
+	Cart        = "/cart"
+	CartSetting = "/cart_setting"
 
 	Edit      = "/edit"
+	Check     = "/check"
 	Rename    = "/rename"
 	Increment = "/increment"
 

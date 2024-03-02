@@ -22,7 +22,7 @@ func New(cartService service.CartService) *Handler {
 	}
 }
 
-// Handle expects to have cart id as a given parametr
+// Handle expects to have cart id as a given parameter
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	if len(in.Args) < 1 {
 		out.SendMessage(response.NewMessage("expecting to have a cart id as an argument"))
@@ -47,7 +47,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, message.CartFromDomain(out, cart))
+	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, message.CartFromDomain(in.Ctx, out, cart))
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return

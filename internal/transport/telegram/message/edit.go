@@ -14,7 +14,7 @@ import (
 func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domain.Item) interfaces.MessageOut {
 	msgTxt := item.Name + "( " + strconv.Itoa(int(item.Amount)) + " ) "
 
-	keys := keyboard.InlineKeyboard{Columns: 2}
+	keys := keyboard.Keyboard{Columns: 2}
 	keys.AddButton("🔙", commands.Cart)
 	keys.AddButton("Rename✏️", commands.Rename+" "+strconv.Itoa(int(userCart.Cart.ID))+" "+item.Name)
 

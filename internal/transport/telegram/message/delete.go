@@ -14,7 +14,7 @@ import (
 func Delete(out tgapi.Chat, cart domain.UserCart) tgapi.MessageOut {
 	cartIdStr := strconv.FormatUint(uint64(cart.Cart.ID), 10)
 
-	keys := keyboard.InlineKeyboard{}
+	keys := keyboard.Keyboard{}
 	keys.Columns = 1
 	for _, item := range cart.Cart.Items {
 		amountStr := strconv.FormatUint(uint64(item.Amount), 10)

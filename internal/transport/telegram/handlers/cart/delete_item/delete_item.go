@@ -54,7 +54,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 			ChatId:    in.Chat.ID,
 			MessageId: *cart.Cart.MessageID,
 		})
-		message.CartFromDomain(out, cart)
+		message.CartFromDomain(in.Ctx, out, cart)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 		return
 	}
 
-	message.CartFromDomain(out, cart)
+	message.CartFromDomain(in.Ctx, out, cart)
 }
 
 func (h *Handler) GetCommand() string {

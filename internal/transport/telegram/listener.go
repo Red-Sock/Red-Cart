@@ -8,14 +8,15 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/config"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/delete_cart"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/delete_item"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit/rename"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit_item/rename"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/purge_cart"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/settings"
 
 	"github.com/Red-Sock/Red-Cart/internal/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit/increment"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit_item"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/edit_item/increment"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/version"
 )
@@ -32,16 +33,19 @@ func NewServer(cfg *config.Config, bot go_tg.TgApi, srv service.Storage) (s *Ser
 	{
 		// Add handlers here
 		s.bot.AddCommandHandler(version.New(cfg))
+
 		s.bot.AddCommandHandler(start.New(srv.User(), srv.Cart()))
 
 		s.bot.AddCommandHandler(cart.New(srv.User(), srv.Cart()))
 
-		s.bot.AddCommandHandler(edit.New(srv.User(), srv.Cart()))
-
+		s.bot.AddCommandHandler(edit_item.New(srv.User(), srv.Cart()))
 		s.bot.AddCommandHandler(rename.New(srv.User(), srv.Cart()))
 		s.bot.AddCommandHandler(increment.New())
+
 		s.bot.AddCommandHandler(delete_cart.New(srv.Cart()))
 		s.bot.AddCommandHandler(delete_item.New(srv.Item(), srv.Cart()))
+
+		s.bot.AddCommandHandler(settings.New(srv.Cart()))
 
 		s.bot.AddCommandHandler(purge_cart.New(srv.Cart()))
 

@@ -10,6 +10,7 @@ type ItemRepo interface {
 }
 
 type Item struct {
-	Name   string `json:"name"`
-	Amount uint8  `json:"amount"`
+	Name    string `json:"name"`
+	Amount  uint8  `json:"amount"`
+	Checked bool   `json:"checked"`
 }

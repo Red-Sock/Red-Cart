@@ -1,10 +1,11 @@
-package cart
+package edit_item
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
 
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
@@ -23,32 +24,37 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	userCart, err := h.userService.GetCartByChat(in.Ctx, in.From.ID)
+	if len(in.Args) == 0 {
+		return
+	}
+
+	cart, err := h.userService.GetCartByChat(in.Ctx, in.Chat.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
 
-	if !in.IsCallback {
-		out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
-			MessageId: int64(in.MessageID),
-		})
+	var itemInCart *domain.Item
+
+	for idx := range cart.Cart.Items {
+		if cart.Cart.Items[idx].Name == in.Args[0] {
+			itemInCart = &cart.Cart.Items[idx]
+		}
 	}
 
-	msg := message.CartFromDomain(in.Ctx, out, userCart)
+	if itemInCart == nil {
+		return
+	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
+	msg := message.EditFromCartItem(out, cart, *itemInCart)
+
+	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
-}
-
-func (h *Handler) GetDescription() string {
-	return "Shows default cart"
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Cart
+	return commands.Edit
 }
