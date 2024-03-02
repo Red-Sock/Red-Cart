@@ -11,6 +11,10 @@ const (
 	ClickToRemove PhraseKey = "ClickToRemove"
 	Cart          PhraseKey = "Cart"
 	Rename        PhraseKey = "Rename"
+
+	Welcome               PhraseKey = "Welcome"
+	WelcomeBack           PhraseKey = "WelcomeBack"
+	WelcomeMessagePattern PhraseKey = "WelcomeMessagePattern"
 )
 
 const (

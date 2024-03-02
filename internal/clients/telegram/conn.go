@@ -6,8 +6,11 @@ import (
 	"github.com/Red-Sock/go_tg"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
 func New(cfg *config.Config) *go_tg.Bot {
-	return go_tg.NewBot(cfg.GetString(config.ServerTelegramAPIKey))
+	b := go_tg.NewBot(cfg.GetString(config.ServerTelegramAPIKey))
+	b.ExternalContext = scripts.EnrichCtx
+	return b
 }

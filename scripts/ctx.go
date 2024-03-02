@@ -3,13 +3,13 @@ package scripts
 import (
 	"context"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/Red-Sock/go_tg/model"
 )
 
 const ctxLangKey = "lang"
 
-func EnrichCtx(ctx context.Context, in tgbotapi.Message) context.Context {
-	return context.WithValue(ctx, ctxLangKey, lang(in.From.LanguageCode))
+func EnrichCtx(in *model.MessageIn) context.Context {
+	return context.WithValue(context.Background(), ctxLangKey, lang(in.From.LanguageCode))
 }
 
 func extractLang(ctx context.Context) lang {

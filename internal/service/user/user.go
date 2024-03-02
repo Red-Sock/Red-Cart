@@ -7,6 +7,7 @@ import (
 	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
 type Service struct {
@@ -46,7 +47,7 @@ func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) 
 	}
 
 	if user != nil {
-		message.Msg = "С возвращением!"
+		message.Msg = scripts.Get(ctx, scripts.WelcomeBack)
 		message.User = *user
 	} else {
 		err = u.userData.Upsert(ctx, newUser)
@@ -56,7 +57,7 @@ func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) 
 			}, errors.Wrap(err, "error updating user's profile")
 		}
 		message.User = newUser
-		message.Msg = "Добро пожаловать!"
+		message.Msg = scripts.Get(ctx, scripts.Welcome)
 	}
 
 	userCart, err := u.cartData.GetByOwnerId(ctx, newUser.ID)
@@ -78,12 +79,7 @@ func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) 
 		}, err
 	}
 
-	message.Msg += fmt.Sprintf(` 🛒
-
-Корзина по умолчанию: %d
-
-Для добавления продуктов просто введите их название
-`, message.Cart.ID)
+	message.Msg += fmt.Sprintf(scripts.Get(ctx, scripts.WelcomeMessagePattern), message.Cart.ID)
 
 	return message, nil
 }

@@ -8,12 +8,14 @@ type lang string
 
 const (
 	ruLang = "ru"
+	enLang = "en"
 
 	defaultLang = ruLang
 )
 
 var scripts = map[lang]map[PhraseKey]string{
 	ruLang: ru,
+	enLang: en,
 }
 
 func Get(ctx context.Context, key PhraseKey) string {
@@ -35,10 +37,11 @@ func GetInstructions() map[string]map[string]PhraseKey {
 }
 
 func GetLang(in string) string {
-	switch in {
-	case ruLang:
-		return ruLang
-	default:
-		return ruLang
+	_, ok := scripts[lang(in)]
+	if ok {
+		return in
 	}
+
+	return ruLang
+
 }
