@@ -19,14 +19,14 @@ func New(conn postgres.Conn) *Repo {
 	return &Repo{conn: conn}
 }
 
-func (c *Repo) Create(ctx context.Context, idOwner int64, chatID int64) (id int64, err error) {
+func (c *Repo) Create(ctx context.Context, idOwner int64) (id int64, err error) {
 	err = c.conn.QueryRow(ctx, `
 	INSERT INTO carts
-	    (owner_id, state, chat_id)
-	VALUES	(   $1,   $2,      $3)
+	    (owner_id, state)
+	VALUES	(   $1,   $2)
 	RETURNING id`,
-		idOwner, domain.CartStateAdding, chatID,
-	).Scan(&id)
+		idOwner, domain.CartStateAdding).
+		Scan(&id)
 	if err != nil {
 		return 0, errors.Wrap(err, "error creating cart")
 	}
@@ -41,19 +41,19 @@ func (c *Repo) SetDefaultCart(ctx context.Context, userID int64, cartID int64) e
 	WHERE user_id = $2
 `, cartID, userID)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error setting default cart")
 	}
 
 	return nil
 }
 
-func (c *Repo) LinkUserToCart(ctx context.Context, userID int64, cartID int64) error {
+func (c *Repo) LinkUserToCart(ctx context.Context, userId int64, cartId int64) error {
 	_, err := c.conn.Exec(ctx, `
 	INSERT INTO carts_users
 			(user_id, cart_id, is_default) 
 	VALUES  ($1, $2, $3)
 	ON CONFLICT DO NOTHING 
-	`, userID, cartID, false)
+	`, userId, cartId, false)
 	if err != nil {
 		return errors.Wrap(err, "error executing db query")
 	}
@@ -66,8 +66,8 @@ func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Car
 	err := c.conn.QueryRow(ctx, `
 		SELECT
 			cu.cart_id,
-			c.chat_id,
-			c.message_id
+			cu.chat_id,
+			cu.message_id
 		FROM carts_users cu
 		LEFT JOIN public.carts c ON c.id = cu.cart_id
 		WHERE cu.user_id = $1
@@ -75,8 +75,8 @@ func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Car
 		userID).
 		Scan(
 			&cart.ID,
-			&cart.ChatID,
-			&cart.MessageID,
+			&cart.ChatId,
+			&cart.MessageId,
 		)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -96,18 +96,21 @@ func (c *Repo) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.UserCar
 		c.id,
 		c.owner_id,
 		
-		c.chat_id,
-		c.message_id,
+		cu.chat_id,
+		cu.message_id,
+		
 		c.state,
 		c.state_payload
 	FROM carts c
+	JOIN carts_users cu ON cu.cart_id = c.id
+	AND cu.user_id = $1
 	WHERE owner_id = $1`,
 		ownerId).
 		Scan(
 			&dbCart.Cart.ID,
 			&dbCart.User.ID,
-			&dbCart.Cart.ChatID,
-			&dbCart.Cart.MessageID,
+			&dbCart.Cart.ChatId,
+			&dbCart.Cart.MessageId,
 			&dbCart.Cart.State,
 			&dbCart.Cart.StatePayload,
 		)
@@ -185,14 +188,14 @@ func (c *Repo) ListCartItems(ctx context.Context, id int64) ([]domain.Item, erro
 	return cartItem, nil
 }
 
-func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.Cart) error {
+func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.UserCart) error {
 	_, err := c.conn.Exec(ctx, `
-		UPDATE carts
+		UPDATE carts_users
 		SET
 		    chat_id = $1,
 		    message_id = $2 
-		WHERE id = $3
-`, cart.ChatID, cart.MessageID, cart.ID)
+		WHERE cart_id = $3 AND user_id = $4
+`, cart.Cart.ChatId, cart.Cart.MessageId, cart.Cart.ID, cart.User.ID)
 	if err != nil {
 		return errors.Wrap(err, "error updating cart")
 	}
@@ -200,7 +203,7 @@ func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.Cart) error 
 	return nil
 }
 
-func (c *Repo) GetCartByChatId(ctx context.Context, chatID int64) (resp *domain.UserCart, err error) {
+func (c *Repo) GetCartByChatId(ctx context.Context, chatId int64) (resp *domain.UserCart, err error) {
 	resp = &domain.UserCart{}
 
 	err = c.conn.QueryRow(ctx, `
@@ -208,19 +211,21 @@ func (c *Repo) GetCartByChatId(ctx context.Context, chatID int64) (resp *domain.
 		    c.id,
 		    c.owner_id,
 		    
-			c.chat_id,
-			c.message_id,
+			cu.chat_id,
+			cu.message_id,
 			c.state,
 			c.state_payload
 		FROM carts c
-		WHERE chat_id = $1
-`, chatID).
+		LEFT JOIN carts_users cu 
+		ON cu.cart_id = c.id 
+		AND cu.chat_id = $1
+`, chatId).
 		Scan(
 			&resp.Cart.ID,
 			&resp.User.ID,
 
-			&resp.Cart.ChatID,
-			&resp.Cart.MessageID,
+			&resp.Cart.ChatId,
+			&resp.Cart.MessageId,
 			&resp.Cart.State,
 			&resp.Cart.StatePayload,
 		)
@@ -237,20 +242,23 @@ func (c *Repo) GetCartByID(ctx context.Context, id int64) (*domain.UserCart, err
 		SELECT 
 		    c.id,
 		    c.owner_id,
-		    
-			c.chat_id,
-			c.message_id,
+
+			cu.chat_id,
+			cu.message_id,
+
 			c.state,
 			c.state_payload
 		FROM carts c
+		LEFT JOIN carts_users cu ON c.id = cu.cart_id
 		WHERE id = $1
 `, id).
 		Scan(
 			&resp.Cart.ID,
 			&resp.User.ID,
 
-			&resp.Cart.ChatID,
-			&resp.Cart.MessageID,
+			&resp.Cart.ChatId,
+			&resp.Cart.MessageId,
+
 			&resp.Cart.State,
 			&resp.Cart.StatePayload,
 		)

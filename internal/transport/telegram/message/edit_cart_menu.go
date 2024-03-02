@@ -18,10 +18,10 @@ func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domai
 	keys.AddButton("🔙", commands.Cart)
 	keys.AddButton("Rename✏️", commands.Rename+" "+strconv.Itoa(int(userCart.Cart.ID))+" "+item.Name)
 
-	if userCart.Cart.MessageID != nil {
+	if userCart.Cart.MessageId != nil {
 		out := &response.EditMessage{
-			ChatId:    userCart.Cart.ChatID,
-			MessageId: *userCart.Cart.MessageID,
+			ChatId:    userCart.Cart.ChatId,
+			MessageId: *userCart.Cart.MessageId,
 			Text:      msgTxt,
 			Keys:      &keys,
 		}

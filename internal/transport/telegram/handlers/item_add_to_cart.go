@@ -34,7 +34,7 @@ func (d *DefaultHandler) addItem(in *model.MessageIn, out tgapi.Chat, userCart d
 		return err
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
+	err = d.cartService.SyncCartMessage(in.Ctx, userCart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

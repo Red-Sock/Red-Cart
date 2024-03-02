@@ -48,7 +48,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if !in.IsCallback {
 		_ = out.SendMessage(&response.DeleteMessage{
 			ChatId:    in.Chat.ID,
-			MessageId: *cart.Cart.MessageID,
+			MessageId: *cart.Cart.MessageId,
 		})
 
 		_, err = message.OpenCart(in.Ctx, out, cart)

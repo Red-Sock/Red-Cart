@@ -47,7 +47,7 @@ func (d *DefaultHandler) editItemName(in *model.MessageIn, out tgapi.Chat, cart 
 		return err
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
+	err = d.cartService.SyncCartMessage(in.Ctx, cart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

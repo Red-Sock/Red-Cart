@@ -40,13 +40,13 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	if startMessage.Cart.MessageID != nil {
+	if startMessage.Cart.MessageId != nil {
 		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    startMessage.Cart.ChatID,
-			MessageId: *startMessage.Cart.MessageID,
+			ChatId:    startMessage.Cart.ChatId,
+			MessageId: *startMessage.Cart.MessageId,
 		})
 
-		startMessage.Cart.MessageID = nil
+		startMessage.Cart.MessageId = nil
 	}
 
 	h.startMessage(in, startMessage, out)
@@ -56,7 +56,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return err
 	}
 
-	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.Cart, cartMsg)
+	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.UserCart, cartMsg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

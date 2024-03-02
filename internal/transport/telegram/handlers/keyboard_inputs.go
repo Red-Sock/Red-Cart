@@ -46,7 +46,7 @@ func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCa
 		})
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, userCart.Cart, msg)
+	err = d.cartService.SyncCartMessage(in.Ctx, userCart, msg)
 	if err != nil {
 		return true, out.SendMessage(response.NewMessage(err.Error()))
 	}

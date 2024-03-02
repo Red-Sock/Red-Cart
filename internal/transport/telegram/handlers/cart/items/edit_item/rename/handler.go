@@ -59,7 +59,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart.Cart, msg)
+	err = h.cartService.SyncCartMessage(in.Ctx, cart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
@@ -75,11 +75,11 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 func (h *Handler) sendRenameMessage(cart domain.Cart, oldItemName string, out tgapi.Chat) (tgapi.MessageOut, error) {
 	text := "Введите новое имя для " + oldItemName
 
-	if cart.MessageID != nil {
+	if cart.MessageId != nil {
 		msg := &response.EditMessage{
-			ChatId:    cart.ChatID,
+			ChatId:    cart.ChatId,
 			Text:      text,
-			MessageId: *cart.MessageID,
+			MessageId: *cart.MessageId,
 		}
 		err := out.SendMessage(msg)
 

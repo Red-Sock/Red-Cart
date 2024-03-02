@@ -21,11 +21,11 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 		text = scripts.Get(ctx, scripts.CartIsEmpty)
 
 		var msg interfaces.MessageOut
-		if cart.Cart.MessageID != nil {
+		if cart.Cart.MessageId != nil {
 			msg = &response.EditMessage{
-				ChatId:    cart.Cart.ChatID,
+				ChatId:    cart.Cart.ChatId,
 				Text:      text,
-				MessageId: *cart.Cart.MessageID,
+				MessageId: *cart.Cart.MessageId,
 			}
 		} else {
 			msg = response.NewMessage(text)
@@ -55,10 +55,10 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 		}
 	}
 
-	if cart.Cart.MessageID != nil {
+	if cart.Cart.MessageId != nil {
 		out := &response.EditMessage{
-			ChatId:    cart.Cart.ChatID,
-			MessageId: *cart.Cart.MessageID,
+			ChatId:    cart.Cart.ChatId,
+			MessageId: *cart.Cart.MessageId,
 			Text:      text,
 			Keys:      keys,
 		}
@@ -97,10 +97,10 @@ func CartSettings(chat interfaces.Chat, cart domain.UserCart) (interfaces.Messag
 		keys.AddButton("️🔙", commands.Cart)
 	}
 
-	if cart.Cart.MessageID != nil {
+	if cart.Cart.MessageId != nil {
 		out := &response.EditMessage{
-			ChatId:    cart.Cart.ChatID,
-			MessageId: *cart.Cart.MessageID,
+			ChatId:    cart.Cart.ChatId,
+			MessageId: *cart.Cart.MessageId,
 			Text:      text,
 			Keys:      keys,
 		}

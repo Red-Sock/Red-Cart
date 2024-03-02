@@ -20,17 +20,17 @@ func New(cartData domain.CartRepo) *Service {
 	}
 }
 
-func (c *Service) SyncCartMessage(ctx context.Context, cart domain.Cart, msg tgapi.MessageOut) error {
-	if cart.MessageID != nil && *cart.MessageID == msg.GetMessageId() {
+func (c *Service) SyncCartMessage(ctx context.Context, userCart domain.UserCart, msg tgapi.MessageOut) error {
+	if userCart.Cart.MessageId != nil && *userCart.Cart.MessageId == msg.GetMessageId() {
 		return nil
 	}
 
-	cart.ChatID = msg.GetChatId()
+	userCart.Cart.ChatId = msg.GetChatId()
 
 	msgID := msg.GetMessageId()
-	cart.MessageID = &msgID
+	userCart.Cart.MessageId = &msgID
 
-	err := c.cartData.UpdateCartReference(ctx, cart)
+	err := c.cartData.UpdateCartReference(ctx, userCart)
 	if err != nil {
 		return errors.Wrap(err, "error updating cart chat reference")
 	}

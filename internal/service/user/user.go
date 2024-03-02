@@ -123,7 +123,7 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 }
 
 func (u *Service) createCartForUser(ctx context.Context, user domain.User, chatID int64) (int64, error) {
-	cartID, err := u.cartData.Create(ctx, user.ID, chatID)
+	cartID, err := u.cartData.Create(ctx, user.ID)
 	if err != nil {
 		return 0, errors.Wrap(err, "error creating cart")
 	}

@@ -33,11 +33,11 @@ func Delete(out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
 
 	text := "Нажмите для удаления"
 
-	if cart.Cart.MessageID != nil {
+	if cart.Cart.MessageId != nil {
 		msg := &response.EditMessage{
-			ChatId:    cart.Cart.ChatID,
+			ChatId:    cart.Cart.ChatId,
 			Text:      text,
-			MessageId: *cart.Cart.MessageID,
+			MessageId: *cart.Cart.MessageId,
 			Keys:      &keys,
 		}
 

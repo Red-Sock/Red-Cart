@@ -5,7 +5,8 @@ import (
 )
 
 type CartRepo interface {
-	Create(ctx context.Context, idOwner int64, chatID int64) (id int64, err error)
+	Create(ctx context.Context, idOwner int64) (id int64, err error)
+
 	SetDefaultCart(ctx context.Context, userID int64, cartID int64) error
 	LinkUserToCart(ctx context.Context, userID int64, cartID int64) error
 
@@ -13,7 +14,7 @@ type CartRepo interface {
 
 	AddCartItems(ctx context.Context, items []Item, cardId int64, userId int64) error
 
-	UpdateCartReference(ctx context.Context, cart Cart) error
+	UpdateCartReference(ctx context.Context, cart UserCart) error
 
 	GetUserDefaultCart(ctx context.Context, id int64) (Cart, error)
 	GetByOwnerId(ctx context.Context, id int64) (*UserCart, error)
@@ -43,8 +44,8 @@ type Cart struct {
 	ID    int64
 	Items []Item
 
-	ChatID    int64
-	MessageID *int64
+	ChatId    int64
+	MessageId *int64
 
 	State        cartState
 	StatePayload []byte

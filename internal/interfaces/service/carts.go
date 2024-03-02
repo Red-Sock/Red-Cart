@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
-	tgapi "github.com/Red-Sock/go_tg/interfaces"
+	"github.com/Red-Sock/go_tg/interfaces"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
 type CartService interface {
-	SyncCartMessage(ctx context.Context, cart domain.Cart, msg tgapi.MessageOut) error
+	SyncCartMessage(context.Context, domain.UserCart, interfaces.MessageOut) error
 
 	GetCartByChatId(ctx context.Context, chatID int64) (domain.UserCart, error)
 
