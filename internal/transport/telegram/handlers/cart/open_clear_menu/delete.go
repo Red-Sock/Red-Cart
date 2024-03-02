@@ -49,7 +49,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	_, err = message.Delete(out, cart)
+	_, err = message.Delete(in.Ctx, out, cart)
 	if err != nil {
 		return err
 	}

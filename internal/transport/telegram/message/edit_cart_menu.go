@@ -1,6 +1,7 @@
 package message
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/Red-Sock/go_tg/interfaces"
@@ -9,14 +10,17 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func EditFromCartItem(chat interfaces.Chat, userCart domain.UserCart, item domain.Item) (interfaces.MessageOut, error) {
+func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain.UserCart, item domain.Item) (interfaces.MessageOut, error) {
 	msgTxt := item.Name + "( " + strconv.Itoa(int(item.Amount)) + " ) "
+
+	cartId := strconv.Itoa(int(userCart.Cart.ID))
 
 	keys := keyboard.Keyboard{Columns: 2}
 	keys.AddButton("🔙", commands.Cart)
-	keys.AddButton("Rename✏️", commands.Rename+" "+strconv.Itoa(int(userCart.Cart.ID))+" "+item.Name)
+	keys.AddButton(scripts.Get(ctx, scripts.Rename), commands.Rename+" "+cartId+" "+item.Name)
 
 	if userCart.Cart.MessageId != nil {
 		out := &response.EditMessage{

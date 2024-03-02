@@ -6,6 +6,11 @@ const (
 	OpenSetting PhraseKey = "Setting"
 	CreateCart  PhraseKey = "CreateCart"
 	Clear       PhraseKey = "Clear"
+	PurgeCart   PhraseKey = "Purge"
+
+	ClickToRemove PhraseKey = "ClickToRemove"
+	Cart          PhraseKey = "Cart"
+	Rename        PhraseKey = "Rename"
 )
 
 const (
@@ -17,5 +22,8 @@ const (
 	SettingIcon = "🛠️"
 	DeleteIcon  = "❌"
 	BinIcon     = "🗑️"
+	PurgeIcon   = "🚮"
 	CheckedIcon = "✅"
+	BackIcon    = "🔙"
+	EditIcon    = "✏️"
 )

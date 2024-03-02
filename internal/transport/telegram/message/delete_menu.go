@@ -1,6 +1,7 @@
 package message
 
 import (
+	"context"
 	"strconv"
 
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
@@ -9,9 +10,10 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func Delete(out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
+func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
 	if len(cart.Cart.Items) == 0 {
 		return nil, nil
 	}
@@ -20,18 +22,19 @@ func Delete(out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
 
 	keys := keyboard.Keyboard{}
 	keys.Columns = 1
-	for _, item := range cart.Cart.Items {
-		amountStr := strconv.FormatUint(uint64(item.Amount), 10)
+
+	items, key := itemList(cart.Cart.Items)
+	for i, itemName := range items {
 
 		keys.AddButton(
-			item.Name+" ( "+amountStr+" )"+"❌",
-			commands.DeleteItem+" "+cartIdStr+" "+item.Name)
+			itemName+scripts.DeleteIcon,
+			commands.DeleteItem+" "+cartIdStr+" "+key[i])
 	}
 
-	keys.AddButton("Очистить корзину🚮", commands.Purge+" "+cartIdStr)
-	keys.AddButton("🔙", commands.Cart)
+	keys.AddButton(scripts.Get(ctx, scripts.PurgeCart), commands.Purge+" "+cartIdStr)
+	keys.AddButton(scripts.BackIcon, commands.Cart)
 
-	text := "Нажмите для удаления"
+	text := scripts.Get(ctx, scripts.ClickToRemove)
 
 	if cart.Cart.MessageId != nil {
 		msg := &response.EditMessage{

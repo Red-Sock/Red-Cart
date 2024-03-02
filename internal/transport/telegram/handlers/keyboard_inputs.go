@@ -26,7 +26,7 @@ func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCa
 	case scripts.OpenSetting:
 		msg, err = message.CartSettings(out, userCart)
 	case scripts.Clear:
-		msg, err = message.Delete(out, userCart)
+		msg, err = message.Delete(in.Ctx, out, userCart)
 	default:
 		return true, out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
 	}

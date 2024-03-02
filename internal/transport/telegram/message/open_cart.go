@@ -2,7 +2,6 @@ package message
 
 import (
 	"context"
-	"sort"
 	"strconv"
 
 	"github.com/Red-Sock/go_tg/interfaces"
@@ -34,23 +33,20 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 		return msg, chat.SendMessage(msg)
 	}
 
-	text = "Корзина"
+	text = scripts.Get(ctx, scripts.Cart)
 
 	var keys *keyboard.Keyboard
 	cartId := strconv.Itoa(int(cart.Cart.ID))
 	if len(cart.Cart.Items) != 0 {
-		sort.Slice(cart.Cart.Items, func(i, j int) bool {
-			return cart.Cart.Items[i].Name < cart.Cart.Items[j].Name
-		})
 		keys = &keyboard.Keyboard{}
 		keys.Columns = 1
-		for _, item := range cart.Cart.Items {
-			itemName := item.Name + " ( " + strconv.FormatUint(uint64(item.Amount), 10) + " )"
-			if item.Checked {
 
-				keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+item.Name)
+		items, itemKeys := itemList(cart.Cart.Items)
+		for i, itemName := range items {
+			if !cart.Cart.Items[i].Checked {
+				keys.AddButton(itemName, commands.Check+" "+cartId+" "+itemKeys[i])
 			} else {
-				keys.AddButton(itemName, commands.Check+" "+cartId+" "+item.Name)
+				keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+itemKeys[i])
 			}
 		}
 	}
@@ -77,12 +73,12 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 	return out, chat.SendMessage(out)
 }
 
-func CartSettings(chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
+func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 	if len(cart.Cart.Items) == 0 {
-		text = "Корзина пуста"
+		text = scripts.Get(ctx, scripts.CartIsEmpty)
 	} else {
-		text = "Корзина"
+		text = scripts.Get(ctx, scripts.Cart)
 	}
 
 	var keys *keyboard.Keyboard
@@ -90,8 +86,10 @@ func CartSettings(chat interfaces.Chat, cart domain.UserCart) (interfaces.Messag
 	if len(cart.Cart.Items) != 0 {
 		keys = &keyboard.Keyboard{}
 		keys.Columns = 1
-		for _, item := range cart.Cart.Items {
-			keys.AddButton(item.Name+" ( "+strconv.FormatUint(uint64(item.Amount), 10)+" )", commands.Edit+" "+item.Name)
+
+		itemsNames, itemKeys := itemList(cart.Cart.Items)
+		for i, itemName := range itemsNames {
+			keys.AddButton(itemName, commands.Edit+" "+itemKeys[i])
 		}
 
 		keys.AddButton("️🔙", commands.Cart)
