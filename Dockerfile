@@ -12,4 +12,4 @@ COPY --from=builder ./deploy/server/ .
 
 EXPOSE 8080
 
-ENTRYPOINT ["./velez"]
+ENTRYPOINT ["./redcart"]
