@@ -7,7 +7,7 @@ server:
         api_key:
 data_sources:
     postgres:
-        host: localhost
+        host: postgres
         port: 5432
         name: "red_cart"
         user: "red_cart"
