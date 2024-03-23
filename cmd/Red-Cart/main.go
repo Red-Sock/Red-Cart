@@ -22,15 +22,16 @@ func main() {
 
 	ctx := context.Background()
 
-	cfg, err := config.ReadConfig()
+	cfg, err := config.Load()
 	if err != nil {
 		logrus.Fatalf("error reading config %s", err.Error())
 	}
 
-	startupDuration, err := cfg.GetDuration(config.AppInfoStartupDuration)
-	if err != nil {
+	startupDuration := cfg.AppInfo().StartupDuration
+	if startupDuration == 0 {
 		logrus.Fatalf("error extracting startup duration %s", err)
 	}
+
 	ctx, cancel := context.WithTimeout(ctx, startupDuration)
 
 	closer.Add(func() error {
@@ -38,12 +39,27 @@ func main() {
 		return nil
 	})
 
-	conn, err := pgclient.New(ctx, cfg)
+	p, err := cfg.Resources().Postgres(config.DataSourcesPostgres)
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.Fatalf("error getting postgres configuration %s", err)
 	}
 
-	tg := telegramserver.NewServer(cfg, telegram.New(cfg), *service.New(postgres.New(conn)))
+	conn, err := pgclient.New(ctx, p)
+	if err != nil {
+		logrus.Fatal(err, "error creating pgclient")
+	}
+
+	tgConf, err := cfg.Resources().Telegram(config.DataSourcesTelegram)
+	if err != nil {
+		logrus.Fatal(err, "error getting telegram config")
+	}
+
+	tg := telegramserver.NewServer(
+		cfg,
+		telegram.New(tgConf),
+		*service.New(postgres.New(conn)),
+	)
+
 	err = tg.Start(ctx)
 	if err != nil {
 		logrus.Fatalf("error starting telegram server %s", err)

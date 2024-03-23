@@ -13,9 +13,9 @@ type Handler struct {
 	version string
 }
 
-func New(cfg *config.Config) *Handler {
+func New(cfg config.Config) *Handler {
 	return &Handler{
-		version: cfg.GetString(config.AppInfoVersion),
+		version: cfg.AppInfo().Version,
 	}
 }
 

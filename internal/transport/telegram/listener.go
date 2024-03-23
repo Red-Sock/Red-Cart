@@ -27,7 +27,7 @@ type Server struct {
 	bot go_tg.TgApi
 }
 
-func NewServer(cfg *config.Config, bot go_tg.TgApi, srv service.Storage) (s *Server) {
+func NewServer(cfg config.Config, bot go_tg.TgApi, srv service.Storage) (s *Server) {
 	s = &Server{
 		bot: bot,
 	}

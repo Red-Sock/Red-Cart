@@ -5,14 +5,7 @@ package config
 type configKey string
 
 const (
-	AppInfoName                = "app_info_name"
-	AppInfoStartupDuration     = "app_info_startup_duration"
-	AppInfoVersion             = "app_info_version"
-	DataSourcesPostgresHost    = "data_sources_postgres_host"
-	DataSourcesPostgresName    = "data_sources_postgres_name"
-	DataSourcesPostgresPort    = "data_sources_postgres_port"
-	DataSourcesPostgresPwd     = "data_sources_postgres_pwd"
-	DataSourcesPostgresSslMode = "data_sources_postgres_ssl_mode"
-	DataSourcesPostgresUser    = "data_sources_postgres_user"
-	ServerTelegramAPIKey       = "server_telegram_api_key"
+	DataSourcesPostgres = "Resource_postgres"
+
+	DataSourcesTelegram = "Resource_telegram"
 )

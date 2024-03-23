@@ -3,12 +3,12 @@ app_info:
     version: v0.0.3
     startup_duration: 10s
 server:
-    telegram:
-        api_key: ""
 data_sources:
-    postgres:
-        host: localhost
-        port: 5432
-        name: "red_cart"
-        user: "red_cart"
-        pwd: ""
+    - resource_name: postgres
+      host: localhost
+      port: 5432
+      name: "red_cart"
+      user: "red_cart"
+      pwd: ""
+    - resource_name: telegram
+      api_key:
