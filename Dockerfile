@@ -2,7 +2,8 @@ FROM --platform=$BUILDPLATFORM golang as builder
 
 WORKDIR /app
 
-ARG TARGETOS TARGETARCH
+ARG TARGETOS
+ARG TARGETARCH
 
 RUN --mount=target=. \
     --mount=type=cache,target=/root/.cache/go-build \
