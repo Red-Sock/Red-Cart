@@ -9,7 +9,6 @@ import (
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 )
 
@@ -75,14 +74,4 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
 	//Отправляем владельцу
 	out.SendMessage(response.NewMessage(outMessageBuilder.String()))
 
-}
-
-func checkStatus(cartItem []cart.CartItem) bool {
-	for _, item := range cartItem {
-		if item.Status == "" || item.Status == "wait" {
-			return false
-		}
-	}
-
-	return true
 }

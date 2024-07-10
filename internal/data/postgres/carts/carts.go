@@ -15,8 +15,6 @@ type Carts struct {
 	conn postgres.Conn
 }
 
-const WAIT_STATUS = "wait"
-
 func New(conn postgres.Conn) *Carts {
 	return &Carts{conn: conn}
 }
@@ -91,7 +89,7 @@ func (c *Carts) AddCartItems(ctx context.Context, items []string, cartId int64, 
 	VALUES 					(	  $1, 		 $2, 	  $3,	  $4)
 	ON CONFLICT (user_id, cart_id)
 	DO UPDATE SET item_name = array_cat(carts_items.item_name, $5)`,
-		cartId, items, userId, WAIT_STATUS, items)
+		cartId, items, userId, cart.ItemStatusWait, items)
 	if err != nil {
 		return errors.Wrap(err, "error add cartItem")
 	}
@@ -118,6 +116,7 @@ func (c *Carts) ShowCartItems(ctx context.Context, ownerId int64) ([]cart.CartIt
 
 		return nil, errors.Wrap(err, "error getting cart by ownerId from database")
 	}
+	defer row.Close()
 
 	cartItem := make([]cart.CartItem, 0)
 	for row.Next() {
