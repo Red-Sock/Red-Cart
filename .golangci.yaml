@@ -1,125 +1,159 @@
-# configuration settings https://golangci-lint.run/usage/configuration/
-
-run:
-  timeout: 5m
-  issues-exit-code: 42
-  skip-dirs:
-    - configs
-
 output:
-  format: colored-line-number
+  formats:
+    - format: colored-line-number
+  sort-results: true
+  sort-order:
+    - severity
+  show-stats: true
 
 linters-settings:
   varnamelen: # scope of variable
     max-distance: 25 # amount of lines when variable can be used (about 1 screen space)
-    min-name-length: 2 # minimal lenght of variable that goes out of scope
+    min-name-length: 3 # minimal lenght of variable that goes out of scope
 
-    ignore-type-assert-ok: true
     check-type-param: true
-    ignore-chan-recv-ok: true
+  cyclop:
+    max-complexity: 5
+  decorder:
+    dec-order:
+      - const
+      - var
+      - type
+      - func
+    disable-dec-order-check: false
+    disable-init-func-first-check: false
 
+  dogsled:
+    max-blank-identifiers: 1
+
+  errcheck:
+    check-type-assertions: true # a := b.(MyStruct) - must check type
+
+  errchkjson:
+    report-no-exported: false
+
+  exhaustive:
+    check:
+      - switch
+      - map
+    default-signifies-exhaustive: true
+    default-case-required: true
+
+  funlen:
+    lines: 40
+    statements: 10
+    ignore-comments: true
+
+  gocognit:
+    min-complexity: 20
+
+  goconst:
+    min-len: 5
+    min-occurrences: 2
+    numbers: true
+    min: 1
+    max: 2
+    ignore-calls: false
+
+  grouper:
+    type-require-single-type: true
+
+    const-require-grouping: true
+    import-require-grouping: true
+    var-require-grouping: true
+  lll:
+    tab-width: 4
+
+  nakedret:
+    max-func-lines: 32
+  nestif:
+    min-complexity: 3
+  tagliatelle:
+    case:
+      rules:
+        json: camel
+        yaml: camel
+        env: upperSnake
 linters:
   disable-all: true
   enable:
-    - varnamelen # check lenght of scope of a variable
-
-    - asasalint # prevents from passing []any
-    - asciicheck
-    - bidichk
-    - bodyclose
-    - containedctx
-    - contextcheck
-    - cyclop
-    - decorder
-    - depguard
-    - dogsled
-    - dupl
-    - dupword
-    - durationcheck
-    - errcheck
-    - errchkjson
-    - errname
-    - errorlint
-    - execinquery
-    - exhaustive
-    - exportloopref
-    - forbidigo
-    - forcetypeassert
-    - funlen
-    - gci
-    - gochecknoglobals
-    - gochecknoinits
-    - gocognit
-    - goconst
+# Encoding
+    - asciicheck # Checks code identifiers  to have only ASCII chars
+    - bidichk # Checks for dangerous unicode character sequences
+    - dupword # Detects words duplication
+# Variables
+    - varnamelen # Check variable name length and scope
+    - durationcheck # Checks on time.Duration multiplications (time.Second * 5 * time.Minute)
+    - exhaustive # Checks for full enum usage (in maps and switches)
+    - forcetypeassert # Checks for type assertion
+    - goconst # Checks for repeated strings to be replaced with constant
+    - mnd # Check for magic numbers
+    - ineffassign # Detects unused assignment to existing variable
+# Errors
+    - errname # Checks for correct errors naming (vars and structs)
+    - errorlint # Checks for correct error wrapping
+    - errcheck # Check for unchecked errors
+    - wrapcheck # Checks for wrapping external package errors
+# Arguments
+    - asasalint # Check []any arguments to be ...any
+# Functions
+    - bodyclose # Check for http body to be closed
+    - contextcheck # Check that function use inherited context
+    - cyclop # Check cyclomatic complexity of function
+    - funlen # Checks length of function
+    - gocognit # Checks understandability of code
+    - goprintffuncname # Detects printf-like functions and enforces to end them with "f"
+    - nakedret # Checks for functions without returns value to be exactly the size
+    - nilerr # Checks for "return nil" even if checked error is not nil
+    - nilnil # Detects for "return nil, nil" - must return either one of them
+    - nlreturn # Checks for empty line before return or branch
+    - unparam # Detects unused params in functions
+# Structs
+    - containedctx # Check for structs to NOT contain context.Context
+    - errchkjson # Checks for structs that passed to json functions
+    - tagliatelle # Checks struct's tags
+# Package
+    - decorder # Check declaration order, count of types | constants | vars | functions
+    - dogsled # Check for too many blank ( _ ) identifiers
+    - gochecknoinits # Detects init functions
+    - goimports # Check for goimport
+    - importas # Check for only one way to alias imported package
+# Global
     - gocritic
-    - gocyclo
-    - godot
-    - godox
-    - goerr113
-    - gofmt
-    - gofumpt
-    - goheader
-    - goimports
-    - golint
-    - gomnd
-    - gomoddirectives
-    - gomodguard
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - grouper
-    - importas
-    - ineffassign
-    - interfacebloat
-    - interfacer
-    - ireturn
-    - lll
-    - loggercheck
-    - maintidx
-    - makezero
-    - maligned
-    - misspell
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnil
-    - nlreturn
-    - noctx
-    - nolintlint
-    - nosprintfhostport
-    - paralleltest
-    - prealloc
-    - predeclared
-    - promlinter
-    - reassign
     - revive
-    - rowserrcheck
-    - sqlclosecheck
     - staticcheck
-    - structcheck
-    - stylecheck
-    - tagliatelle
-    - tenv
-    - testableexamples
-    - testpackage
-    - thelper
-    - tparallel
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - usestdlibvars
-    - wastedassign
-    - whitespace
-    - wrapcheck
-    - wsl
-issues:
-  # See the dedicated "issues" documentation section.
-  exclude-rules:
-    - linters:
-        - staticcheck
-      text: "SA9003:"
-    - linters:
-        - lll
-      source: "^//go:generate "
+# Duplications and codestyle
+    - dupl # Code clone detection
+    - gofmt # Checks for go fmt
+    - gomoddirectives # Detects replace | retract | excludes in go.mod
+
+    - gosec # Security checks
+    - gosimple # Code simplification
+    - govet # go vet check
+    - grouper # const | import | var grouping
+    - unused # Detects unused code (vars | funcs | types | consts)
+    - usestdlibvars # Detects variables that can be replaced with std vars | consts
+
+    - lll # Long lines
+    - misspell # Detects misspelled English words
+
+    - nestif # Detects nested IF statements
+    - nosprintfhostport # Checks for Sprintf to construct URL
+    - prealloc # Detects slice declarations to be pre-allocated if possible
+    - predeclared # Detects shadowed Go's directives (go, new, int)
+    - reassign # Detects reassignment of package variable
+# Sql
+    - rowserrcheck # Checks for Rows.Err to be checked
+    - sqlclosecheck # Checks sql.Rows to be closed
+
+# Tests
+    - tenv # Checks for usage of os.Setenv instead of t.Setenv
+    - testableexamples # Tests output
+    - paralleltest # Checks for t.Parallel to be executed in tests
+    - tparallel # Detects wrong t.Parallel calls
+    - unconvert # Detects unnecessary type conversion
+
+
+
+    - wastedassign # Detects useless assignment
+    - whitespace # Detects useless new lines
