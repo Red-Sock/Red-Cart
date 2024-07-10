@@ -64,6 +64,7 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	return nil
 }
 
+// GetCommand - возвращает комманду
 func (h *Handler) GetCommand() string {
 	return commands.Purge
 }
