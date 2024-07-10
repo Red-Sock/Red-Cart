@@ -29,7 +29,7 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	//TODO сходить в базу и поменять статус + изменить сообщение
+
 	out.SendMessage(response.NewMessage("Подтверждено!"))
 
 }

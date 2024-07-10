@@ -4,5 +4,4 @@ type CartItem struct {
 	CartId    int64
 	ItemNames []string
 	UserID    int64
-	Status    string
 }

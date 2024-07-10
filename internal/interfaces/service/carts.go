@@ -3,13 +3,21 @@ package service
 import (
 	"context"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
+	"github.com/Red-Sock/go_tg/interfaces"
+
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
 type CartService interface {
-	Create(ctx context.Context, idOwner int64) (string, error)
-	GetByOwnerId(ctx context.Context, idOwner int64) (cart.Cart, error)
-	GetByCartId(ctx context.Context, idOwner int64) (cart.Cart, error)
-	AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error
-	ShowCartItem(ctx context.Context, idOwner int64) ([]cart.CartItem, error)
+	SyncCartMessage(context.Context, domain.UserCart, interfaces.MessageOut) error
+
+	GetCartByChatId(ctx context.Context, chatID int64) (domain.UserCart, error)
+
+	Add(ctx context.Context, items []domain.Item, cartID int64, userID int64) (domain.UserCart, error)
+
+	GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error)
+
+	AwaitNameChange(ctx context.Context, cartID int64, item domain.Item) error
+	AwaitItemsAdded(ctx context.Context, cartID int64) error
+	PurgeCart(ctx context.Context, cartId int64) error
 }

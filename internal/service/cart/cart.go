@@ -2,88 +2,126 @@ package cart
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 
+	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	errors "github.com/Red-Sock/trace-errors"
 
-	"github.com/Red-Sock/Red-Cart/internal/domain/cart"
-	"github.com/Red-Sock/Red-Cart/internal/interfaces/data"
+	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
-const msgString = `Корзина c id = %d была успешно создана.
-Друзья могут добавить корзину через
-/add_item %d имя_товара_1 имя_товара_2`
-
-type CartsService struct {
-	cartsData data.Carts
+type Service struct {
+	cartData domain.CartRepo
 }
 
-func New(cartData data.Carts) *CartsService {
-	return &CartsService{
-		cartsData: cartData,
+func New(cartData domain.CartRepo) *Service {
+	return &Service{
+		cartData: cartData,
 	}
 }
 
-func (c *CartsService) Create(ctx context.Context, idOwner int64) (string, error) {
-	cart, err := c.cartsData.GetByOwnerId(ctx, idOwner)
+func (c *Service) SyncCartMessage(ctx context.Context, userCart domain.UserCart, msg tgapi.MessageOut) error {
+	if userCart.Cart.MessageId != nil && *userCart.Cart.MessageId == msg.GetMessageId() {
+		return nil
+	}
+
+	userCart.Cart.ChatId = msg.GetChatId()
+
+	msgID := msg.GetMessageId()
+	userCart.Cart.MessageId = &msgID
+
+	err := c.cartData.UpdateCartReference(ctx, userCart)
 	if err != nil {
-		return "", errors.New("Ошибка БД при получения корзины по Id")
-	}
-
-	if cart.OwnerId != 0 {
-		return "", errors.New(fmt.Sprintf("У вас уже есть корзина с идентификатором = %d", cart.Id))
-	}
-
-	id, err := c.cartsData.Create(ctx, idOwner)
-	if err != nil {
-		return "", errors.Wrap(err, "error Creating cart")
-	}
-
-	return fmt.Sprintf(msgString, id, id), nil
-}
-
-func (c *CartsService) AddCartItems(ctx context.Context, items []string, cardId int64, userId int64) error {
-	cartFromDB, err := c.cartsData.GetByCartId(ctx, cardId)
-	if err != nil {
-		return err
-	}
-
-	if cartFromDB.Id == 0 {
-		outMsg := fmt.Sprintf("Корзины с id = %d не существует", cardId)
-		return errors.New(outMsg)
-	}
-
-	err = c.cartsData.AddCartItems(ctx, items, cardId, userId)
-	if err != nil {
-		return err
+		return errors.Wrap(err, "error updating cart chat reference")
 	}
 
 	return nil
 }
 
-func (c *CartsService) GetByCartId(ctx context.Context, cartId int64) (cart.Cart, error) {
-	res, err := c.cartsData.GetByCartId(ctx, cartId)
+func (c *Service) GetCartByChatId(ctx context.Context, chatID int64) (domain.UserCart, error) {
+	userCart, err := c.cartData.GetCartByChatId(ctx, chatID)
 	if err != nil {
-		return cart.Cart{}, err
+		return domain.UserCart{}, errors.Wrap(err, "error reading cart for chat")
 	}
 
-	return res, nil
+	userCart.Cart.Items, err = c.cartData.ListCartItems(ctx, userCart.Cart.ID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error reading cart items")
+	}
+
+	return *userCart, nil
 }
 
-func (c *CartsService) GetByOwnerId(ctx context.Context, idOwner int64) (cart.Cart, error) {
-	res, err := c.cartsData.GetByOwnerId(ctx, idOwner)
+func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, userID int64) (domain.UserCart, error) {
+	cart, err := c.cartData.GetCartByID(ctx, cartID)
 	if err != nil {
-		return cart.Cart{}, err
+		return domain.UserCart{}, err
 	}
 
-	return res, nil
+	if cart == nil {
+		return domain.UserCart{}, errors.New("no such cart")
+	}
+
+	err = c.cartData.AddCartItems(ctx, items, cartID, userID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error adding items to cart ")
+	}
+
+	cart.Cart.Items, err = c.cartData.ListCartItems(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "error getting actual cart items")
+	}
+
+	return *cart, err
 }
 
-func (c *CartsService) ShowCartItem(ctx context.Context, idOwner int64) ([]cart.CartItem, error) {
-	res, err := c.cartsData.ShowCartItems(ctx, idOwner)
+func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error) {
+	uc, err := c.cartData.GetCartByID(ctx, cartID)
 	if err != nil {
-		return []cart.CartItem{}, err
+		return domain.UserCart{}, err
 	}
 
-	return res, nil
+	if uc == nil {
+		return domain.UserCart{}, errors.New("Cart doesn't exists")
+	}
+
+	uc.Cart.Items, err = c.cartData.ListCartItems(ctx, cartID)
+	if err != nil {
+		return domain.UserCart{}, errors.Wrap(err, "Can't get items for cart")
+	}
+
+	return *uc, nil
+}
+
+func (c *Service) AwaitNameChange(ctx context.Context, cartID int64, item domain.Item) (err error) {
+	req := domain.Cart{
+		ID:    cartID,
+		State: domain.CartStateEditingItemName,
+	}
+
+	req.StatePayload, err = json.Marshal(domain.ChangeItemNamePayload{ItemName: item.Name})
+	err = c.cartData.ChangeState(ctx, req)
+	if err != nil {
+		return errors.Wrap(err, "error changing state of cart")
+	}
+
+	return nil
+}
+
+func (c *Service) AwaitItemsAdded(ctx context.Context, cartID int64) (err error) {
+	req := domain.Cart{
+		ID:    cartID,
+		State: domain.CartStateAdding,
+	}
+
+	err = c.cartData.ChangeState(ctx, req)
+	if err != nil {
+		return errors.Wrap(err, "error changing state of cart")
+	}
+
+	return nil
+}
+
+func (c *Service) PurgeCart(ctx context.Context, cartId int64) error {
+	return c.cartData.PurgeCart(ctx, cartId)
 }

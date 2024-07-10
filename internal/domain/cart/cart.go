@@ -5,5 +5,3 @@ type Cart struct {
 	OwnerId int64
 	Url     string
 }
-
-const ItemStatusWait = "wait"

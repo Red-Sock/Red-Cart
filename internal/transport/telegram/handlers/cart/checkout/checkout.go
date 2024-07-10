@@ -33,45 +33,31 @@ func (h *Handler) GetCommand() string {
 }
 
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) {
-	cartOwner, err := h.cartService.GetByOwnerId(in.Ctx, in.From.ID)
+	_, err := h.cartService.GetByOwnerId(in.Ctx, in.From.ID)
 	if err != nil {
 		out.SendMessage(response.NewMessage(err.Error()))
 		return
 	}
 
 	cartItem, err := h.cartService.ShowCartItem(in.Ctx, in.From.ID)
-	if err != nil {
-		out.SendMessage(response.NewMessage(err.Error()))
-		return
-	}
 	var outMessageBuilder strings.Builder
 	for _, item := range cartItem {
-
 		outMessageBuilder.WriteString("User: ")
 		outMessageBuilder.WriteString(strconv.FormatInt(item.UserID, 10))
 		outMessageBuilder.WriteString(" 🕐\n")
-		//Создаются товары конкретного пользователя
-		var userItems strings.Builder
 		for _, name := range item.ItemNames {
-			userItems.WriteString(name)
-			userItems.WriteString("\n")
+			outMessageBuilder.WriteString(name)
+			outMessageBuilder.WriteString("\n")
 		}
-		outMessageBuilder.WriteString(userItems.String())
-		//Создаем сообщение для подтверждения
-		var newMessage strings.Builder
-		newMessage.WriteString("User: ")
-		newMessage.WriteString(strconv.FormatInt(cartOwner.OwnerId, 10))
-		newMessage.WriteString(" просит подтвердить заказ:\n")
-		newMessage.WriteString(userItems.String())
-		msg := response.NewMessageToChat(newMessage.String(), item.UserID)
+
+		msg := response.NewMessageToChat("Подтверждать будешь пес?", item.UserID)
 		msg.Keys = &keyboard.InlineKeyboard{}
 
 		msg.Keys.AddButton("✅", "/accept")
 		msg.Keys.AddButton("❌", "/decline")
-		//Отправляем пользователю подтверждение
 		out.SendMessage(msg)
 	}
-	//Отправляем владельцу
+
 	out.SendMessage(response.NewMessage(outMessageBuilder.String()))
 
 }
