@@ -24,24 +24,24 @@ func New(cartService service.CartService) *Handler {
 }
 
 // Handle expects to have cart id as an argument
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < 1 {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) < 1 {
 		return out.SendMessage(response.NewMessage("required to have cart id as an argument"))
 	}
 
-	cartId, err := strconv.ParseInt(in.Args[0], 10, 64)
+	cartId, err := strconv.ParseInt(msgIn.Args[0], 10, 64)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("required to have cart id - integer"))
 	}
 
-	if !in.IsCallback {
+	if !msgIn.IsCallback {
 		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
-			MessageId: int64(in.MessageID),
+			ChatId:    msgIn.Chat.ID,
+			MessageId: int64(msgIn.MessageID),
 		})
 	}
 
-	cart, err := h.cartService.GetCartByChatId(in.Ctx, cartId)
+	cart, err := h.cartService.GetCartByChatId(msgIn.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("error getting cart for current chat"))
 	}
@@ -50,7 +50,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	_, err = message.Delete(in.Ctx, out, cart)
+	_, err = message.Delete(msgIn.Ctx, out, cart)
 	if err != nil {
 		return errors.Wrap(err, "error assembling delete message")
 	}

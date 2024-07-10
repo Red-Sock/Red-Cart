@@ -3,6 +3,8 @@ package item
 import (
 	"context"
 
+	errors "github.com/Red-Sock/trace-errors"
+
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 )
 
@@ -17,17 +19,37 @@ func New(itemRepo domain.ItemRepo) *Service {
 }
 
 func (s *Service) UpdateName(ctx context.Context, cartID int64, oldName, newName string) error {
-	return s.itemRepo.ChangeName(ctx, cartID, oldName, newName)
+	err := s.itemRepo.ChangeName(ctx, cartID, oldName, newName)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *Service) Delete(ctx context.Context, cartId int64, itemName string) error {
-	return s.itemRepo.Delete(ctx, cartId, itemName)
+	err := s.itemRepo.Delete(ctx, cartId, itemName)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *Service) Check(ctx context.Context, cartId int64, itemName string) error {
-	return s.itemRepo.Check(ctx, cartId, itemName)
+	err := s.itemRepo.Check(ctx, cartId, itemName)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *Service) Uncheck(ctx context.Context, cartId int64, itemName string) error {
-	return s.itemRepo.Uncheck(ctx, cartId, itemName)
+	err := s.itemRepo.Uncheck(ctx, cartId, itemName)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }

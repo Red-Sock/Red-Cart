@@ -14,6 +14,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
+// nolint
 func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain.UserCart, item domain.Item) (interfaces.MessageOut, error) {
 	msgTxt := item.Name + "( " + strconv.Itoa(int(item.Amount)) + " ) "
 

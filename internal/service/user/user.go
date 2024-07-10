@@ -10,7 +10,9 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-var ErrNoDefaultCart = errors.New("Отсутствует корзина по умолчанию")
+var (
+	ErrNoDefaultCart = errors.New("Отсутствует корзина по умолчанию")
+)
 
 type Service struct {
 	userData domain.UserRepo
@@ -42,7 +44,8 @@ func New(uD domain.UserRepo, cartData domain.CartRepo) *Service {
 	}
 }
 
-func (u *Service) Start(ctx context.Context, newUser domain.User, _ int64) (message domain.StartMessagePayload, err error) {
+func (u *Service) Start(ctx context.Context, newUser domain.User, _ int64,
+) (message domain.StartMessagePayload, err error) {
 	user, err := u.userData.Get(ctx, newUser.ID)
 	if err != nil {
 		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error creating new user")
@@ -86,7 +89,8 @@ func (u *Service) Start(ctx context.Context, newUser domain.User, _ int64) (mess
 	return message, nil
 }
 
-func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, userID int64) (cart domain.UserCart, err error) {
+func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, userID int64,
+) (cart domain.UserCart, err error) {
 	user, err := u.userData.Get(ctx, userID)
 	if err != nil {
 		return domain.UserCart{}, errors.New("error getting user data")

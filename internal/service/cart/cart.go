@@ -127,5 +127,10 @@ func (c *Service) AwaitItemsAdded(ctx context.Context, cartID int64) (err error)
 }
 
 func (c *Service) PurgeCart(ctx context.Context, cartId int64) error {
-	return c.cartData.PurgeCart(ctx, cartId)
+	err := c.cartData.PurgeCart(ctx, cartId)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }

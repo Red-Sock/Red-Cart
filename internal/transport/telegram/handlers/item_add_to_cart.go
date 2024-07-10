@@ -12,32 +12,42 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 )
 
-func (d *DefaultHandler) addItem(in *model.MessageIn, out tgapi.Chat, userCart domain.UserCart) error {
-	itemsRaw := strings.Split(in.Text, "\n")
+func (d *DefaultHandler) addItem(msgIn *model.MessageIn, out tgapi.Chat, userCart domain.UserCart) error {
+	itemsRaw := strings.Split(msgIn.Text, "\n")
 	items := make([]domain.Item, 0, len(itemsRaw))
 
 	for _, item := range itemsRaw {
 		items = append(items, domain.Item{Name: item, Amount: 1})
 	}
 
-	cart, err := d.cartService.Add(in.Ctx, items, userCart.Cart.ID, in.From.ID)
+	cart, err := d.cartService.Add(msgIn.Ctx, items, userCart.Cart.ID, msgIn.From.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	_ = out.SendMessage(&response.DeleteMessage{
-		ChatId:    in.Chat.ID,
-		MessageId: int64(in.MessageID),
+		ChatId:    msgIn.Chat.ID,
+		MessageId: int64(msgIn.MessageID),
 	})
 
-	msg, err := message.OpenCart(in.Ctx, out, cart)
+	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
 	if err != nil {
 		return errors.Wrap(err, "error assembling open cart message")
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, userCart, msg)
+	err = d.cartService.SyncCartMessage(msgIn.Ctx, userCart, msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	return nil

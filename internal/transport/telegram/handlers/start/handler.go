@@ -8,6 +8,7 @@ import (
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 	errors "github.com/Red-Sock/trace-errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -28,15 +29,15 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	newUser := domain.User{
-		ID:        in.From.ID,
-		UserName:  in.From.UserName,
-		FirstName: in.From.FirstName,
-		LastName:  in.From.LastName,
+		ID:        msgIn.From.ID,
+		UserName:  msgIn.From.UserName,
+		FirstName: msgIn.From.FirstName,
+		LastName:  msgIn.From.LastName,
 	}
 
-	startMessage, err := h.userSrv.Start(in.Ctx, newUser, in.Chat.ID)
+	startMessage, err := h.userSrv.Start(msgIn.Ctx, newUser, msgIn.Chat.ID)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
@@ -50,21 +51,21 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		startMessage.Cart.MessageId = nil
 	}
 
-	h.startMessage(in, startMessage, out)
+	h.startMessage(msgIn, startMessage, out)
 
-	cartMsg, err := message.OpenCart(in.Ctx, out, startMessage.UserCart)
+	cartMsg, err := message.OpenCart(msgIn.Ctx, out, startMessage.UserCart)
 	if err != nil {
 		return errors.Wrap(err, "open cart error")
 	}
 
-	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.UserCart, cartMsg)
+	err = h.cartSrv.SyncCartMessage(msgIn.Ctx, startMessage.UserCart, cartMsg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
 	return out.SendMessage(&response.DeleteMessage{
-		ChatId:    in.Chat.ID,
-		MessageId: int64(in.MessageID),
+		ChatId:    msgIn.Chat.ID,
+		MessageId: int64(msgIn.MessageID),
 	})
 }
 
@@ -79,7 +80,10 @@ func (h *Handler) startMessage(in *model.MessageIn, payload domain.StartMessageP
 
 	msg.AddKeyboard(keyboardReply)
 
-	out.SendMessage(msg)
+	err := out.SendMessage(msg)
+	if err != nil {
+		logrus.Error(err.Error())
+	}
 }
 
 func (h *Handler) GetDescription() string {

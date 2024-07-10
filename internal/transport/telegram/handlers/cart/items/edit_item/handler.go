@@ -24,12 +24,12 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 	}
 }
 
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) == 0 {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) == 0 {
 		return nil
 	}
 
-	cart, err := h.userService.GetCartByChat(in.Ctx, in.Chat.ID)
+	cart, err := h.userService.GetCartByChat(msgIn.Ctx, msgIn.Chat.ID)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
@@ -37,7 +37,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	var itemInCart *domain.Item
 
 	for idx := range cart.Cart.Items {
-		if cart.Cart.Items[idx].Name == in.Args[0] {
+		if cart.Cart.Items[idx].Name == msgIn.Args[0] {
 			itemInCart = &cart.Cart.Items[idx]
 		}
 	}
@@ -46,12 +46,12 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	msg, err := message.EditFromCartItem(in.Ctx, out, cart, *itemInCart)
+	msg, err := message.EditFromCartItem(msgIn.Ctx, out, cart, *itemInCart)
 	if err != nil {
 		return errors.Wrap(err, "error assembling edit from cart item message")
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart, msg)
+	err = h.cartService.SyncCartMessage(msgIn.Ctx, cart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

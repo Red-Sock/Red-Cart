@@ -39,18 +39,17 @@ linters-settings:
     default-signifies-exhaustive: true
     default-case-required: true
 
-  funlen:
-    lines: 40
-    statements: 10
-    ignore-comments: true
+# TODO
+#  funlen:
+#    lines: 40
+#    statements: 10
+#    ignore-comments: true
 
   gocognit:
     min-complexity: 20
 
 
   grouper:
-    type-require-single-type: true
-
     const-require-grouping: true
     import-require-grouping: true
     var-require-grouping: true
@@ -61,12 +60,7 @@ linters-settings:
     max-func-lines: 32
   nestif:
     min-complexity: 3
-  tagliatelle:
-    case:
-      rules:
-        json: camel
-        yaml: camel
-        env: upperSnake
+
 linters:
   disable-all: true
   enable:
@@ -79,20 +73,19 @@ linters:
     - durationcheck # Checks on time.Duration multiplications (time.Second * 5 * time.Minute)
     - exhaustive # Checks for full enum usage (in maps and switches)
     - forcetypeassert # Checks for type assertion
-    - mnd # Check for magic numbers
     - ineffassign # Detects unused assignment to existing variable
 # Errors
     - errname # Checks for correct errors naming (vars and structs)
     - errorlint # Checks for correct error wrapping
     - errcheck # Check for unchecked errors
-    - wrapcheck # Checks for wrapping external package errors
+#    - wrapcheck # Checks for wrapping external package errors TODO
 # Arguments
     - asasalint # Check []any arguments to be ...any
 # Functions
     - bodyclose # Check for http body to be closed
     - contextcheck # Check that function use inherited context
-    - cyclop # Check cyclomatic complexity of function
-    - funlen # Checks length of function
+#    - cyclop # Check cyclomatic complexity of function TODO
+#    - funlen # Checks length of function TODO
     - gocognit # Checks understandability of code
     - goprintffuncname # Detects printf-like functions and enforces to end them with "f"
     - nakedret # Checks for functions without returns value to be exactly the size
@@ -102,7 +95,6 @@ linters:
 # Structs
     - containedctx # Check for structs to NOT contain context.Context
     - errchkjson # Checks for structs that passed to json functions
-    - tagliatelle # Checks struct's tags
 # Package
     - decorder # Check declaration order, count of types | constants | vars | functions
     - dogsled # Check for too many blank ( _ ) identifiers

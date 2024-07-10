@@ -43,8 +43,14 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 
 	err = h.cartService.SyncCartMessage(in.Ctx, userCart, msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
+
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -32,43 +33,55 @@ func New(itemService service.ItemService, cartService service.CartService) *Hand
 }
 
 // Handle expects cart id and item name as arguments
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < minArgumentsLength {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) < minArgumentsLength {
 		return out.SendMessage(response.NewMessage("expects cart id and item name as arguments"))
 	}
 
-	cartId, err := strconv.ParseInt(in.Args[cartIdIndex], 10, 64)
+	cartId, err := strconv.ParseInt(msgIn.Args[cartIdIndex], 10, 64)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("cart id must be integer."))
 	}
 
-	err = h.itemService.Delete(in.Ctx, cartId, in.Args[itemNameIndex])
+	err = h.itemService.Delete(msgIn.Ctx, cartId, msgIn.Args[itemNameIndex])
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	cart, err := h.cartService.GetCartById(in.Ctx, cartId)
+	cart, err := h.cartService.GetCartById(msgIn.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	if !in.IsCallback {
+	if !msgIn.IsCallback {
 		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
+			ChatId:    msgIn.Chat.ID,
 			MessageId: *cart.Cart.MessageId,
 		})
 
-		_, err = message.OpenCart(in.Ctx, out, cart)
-		return err
+		_, err = message.OpenCart(msgIn.Ctx, out, cart)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	if len(cart.Cart.Items) != 0 {
-		_, err := message.Delete(in.Ctx, out, cart)
-		return err
+		_, err = message.Delete(msgIn.Ctx, out, cart)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	_, err = message.OpenCart(in.Ctx, out, cart)
-	return err
+	_, err = message.OpenCart(msgIn.Ctx, out, cart)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 func (h *Handler) GetCommand() string {

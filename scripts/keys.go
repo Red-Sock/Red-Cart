@@ -1,7 +1,5 @@
 package scripts
 
-type PhraseKey string
-
 const (
 	OpenSetting PhraseKey = "Setting"
 	CreateCart  PhraseKey = "CreateCart"
@@ -31,3 +29,5 @@ const (
 	BackIcon    = "🔙"
 	EditIcon    = "✏️"
 )
+
+type PhraseKey string

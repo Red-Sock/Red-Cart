@@ -17,6 +17,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/utils/closer"
 )
 
+// nolint
 func main() {
 	logrus.Println("starting app")
 
@@ -27,7 +28,7 @@ func main() {
 		logrus.Fatalf("error reading config %s", err.Error())
 	}
 
-	startupDuration := cfg.AppInfo().StartupDuration
+	startupDuration := cfg.GetAppInfo().StartupDuration
 	if startupDuration == 0 {
 		logrus.Fatalf("error extracting startup duration %s", err)
 	}
@@ -36,10 +37,11 @@ func main() {
 
 	closer.Add(func() error {
 		cancel()
+
 		return nil
 	})
 
-	p, err := cfg.Resources().Postgres(config.DataSourcesPostgres)
+	p, err := cfg.GetDataSources().Postgres(config.ResourcePostgres)
 	if err != nil {
 		logrus.Fatalf("error getting postgres configuration %s", err)
 	}
@@ -49,7 +51,7 @@ func main() {
 		logrus.Fatal(err, "error creating pgclient")
 	}
 
-	tgConf, err := cfg.Resources().Telegram(config.DataSourcesTelegram)
+	tgConf, err := cfg.GetDataSources().Telegram(config.ResourceTelegram)
 	if err != nil {
 		logrus.Fatal(err, "error getting telegram config")
 	}

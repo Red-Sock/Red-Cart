@@ -4,19 +4,21 @@ import (
 	"context"
 )
 
-type lang string
-
 const (
-	ruLang = "ru"
-	enLang = "en"
+	ruLang lang = "ru"
+	enLang lang = "en"
 
 	defaultLang = ruLang
 )
 
-var scripts = map[lang]map[PhraseKey]string{
-	ruLang: ru,
-	enLang: en,
-}
+var (
+	scripts = map[lang]map[PhraseKey]string{
+		ruLang: ru,
+		enLang: en,
+	}
+)
+
+type lang string
 
 func Get(ctx context.Context, key PhraseKey) string {
 	return extractScript(ctx)[key]
@@ -42,6 +44,5 @@ func GetLang(in string) string {
 		return in
 	}
 
-	return ruLang
-
+	return string(ruLang)
 }

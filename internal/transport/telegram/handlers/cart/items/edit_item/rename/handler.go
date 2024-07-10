@@ -27,17 +27,17 @@ func New(userService service.UserService, cartService service.CartService) *Hand
 // Handle expects to have 2 arguments:
 // in.Args[0] = cart id
 // in.Args[1] = name of product in cart
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < 2 {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) < 2 {
 		return out.SendMessage(response.NewMessage("Expected to have cart id and item name as arguments"))
 	}
 
-	cartID, err := strconv.ParseInt(in.Args[0], 10, 64)
+	cartID, err := strconv.ParseInt(msgIn.Args[0], 10, 64)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("Expected to have cart id as integer type:" + err.Error()))
 	}
 
-	cart, err := h.cartService.GetCartById(in.Ctx, cartID)
+	cart, err := h.cartService.GetCartById(msgIn.Ctx, cartID)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
@@ -45,7 +45,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	var itemInCart *domain.Item
 
 	for idx := range cart.Cart.Items {
-		if cart.Cart.Items[idx].Name == in.Args[1] {
+		if cart.Cart.Items[idx].Name == msgIn.Args[1] {
 			itemInCart = &cart.Cart.Items[idx]
 		}
 	}
@@ -59,12 +59,12 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart, msg)
+	err = h.cartService.SyncCartMessage(msgIn.Ctx, cart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	err = h.cartService.AwaitNameChange(in.Ctx, cartID, *itemInCart)
+	err = h.cartService.AwaitNameChange(msgIn.Ctx, cartID, *itemInCart)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

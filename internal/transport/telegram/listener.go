@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Red-Sock/go_tg"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/check"
@@ -27,6 +28,7 @@ type Server struct {
 	bot go_tg.TgApi
 }
 
+// nolint
 func NewServer(cfg config.Config, bot go_tg.TgApi, srv service.Storage) (s *Server) {
 	s = &Server{
 		bot: bot,
@@ -60,11 +62,16 @@ func NewServer(cfg config.Config, bot go_tg.TgApi, srv service.Storage) (s *Serv
 }
 
 func (s *Server) Start(_ context.Context) error {
-	s.bot.Start()
+	err := s.bot.Start()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	return nil
 }
 
 func (s *Server) Stop(_ context.Context) error {
 	s.bot.Stop()
+
 	return nil
 }

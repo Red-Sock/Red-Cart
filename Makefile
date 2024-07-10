@@ -1,13 +1,12 @@
-include rscli.mk
-
-dep:
-	go install github.com/gojuno/minimock/v3/cmd/minimock@latest
-	go install github.com/pressly/goose/v3/cmd/goose@latest
 
 
-mock:
-	minimock -i github.com/Red-Sock/go_tg/interfaces.Chat -o tests/mocks -g -s "_mock.go"
+### General Rscli info
+RSCLI_VERSION=v0.0.31
+rscli-version:
+	@echo $(RSCLI_VERSION)
 
-migrate-up:
-	goose -dir migrations postgres "user=red_cart dbname=red_cart host=localhost port=5432 sslmode=disable" up
-
+build-local-container:
+	docker buildx build \
+			--load \
+			--platform linux/arm64 \
+			-t red_cart:local .

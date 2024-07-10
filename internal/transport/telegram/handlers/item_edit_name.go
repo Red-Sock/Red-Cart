@@ -12,45 +12,75 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 )
 
-func (d *DefaultHandler) editItemName(in *model.MessageIn, out tgapi.Chat, cart domain.UserCart) error {
-	if in.Text == "" {
-		return out.SendMessage(response.NewMessage("in order to change name you have to pass a valid string name"))
+func (d *DefaultHandler) editItemName(msgIn *model.MessageIn, out tgapi.Chat, cart domain.UserCart) error {
+	if msgIn.Text == "" {
+		err := out.SendMessage(response.NewMessage("in order to change name you have to pass a valid string name"))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	var p domain.ChangeItemNamePayload
 	err := json.Unmarshal(cart.Cart.StatePayload, &p)
 	if err != nil {
-		return out.SendMessage(response.NewMessage("error parsing cart payload"))
+		err = out.SendMessage(response.NewMessage("error parsing cart payload"))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	_ = out.SendMessage(&response.DeleteMessage{
-		ChatId:    in.Chat.ID,
-		MessageId: int64(in.MessageID),
+		ChatId:    msgIn.Chat.ID,
+		MessageId: int64(msgIn.MessageID),
 	})
 
-	err = d.itemService.UpdateName(in.Ctx, cart.Cart.ID, p.ItemName, in.Text)
+	err = d.itemService.UpdateName(msgIn.Ctx, cart.Cart.ID, p.ItemName, msgIn.Text)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	err = d.cartService.AwaitItemsAdded(in.Ctx, cart.Cart.ID)
+	err = d.cartService.AwaitItemsAdded(msgIn.Ctx, cart.Cart.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	cart, err = d.cartService.GetCartById(in.Ctx, cart.Cart.ID)
+	cart, err = d.cartService.GetCartById(msgIn.Ctx, cart.Cart.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, cart)
+	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, cart, msg)
+	err = d.cartService.SyncCartMessage(msgIn.Ctx, cart, msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
 	return nil

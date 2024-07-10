@@ -4,9 +4,11 @@ import (
 	"errors"
 )
 
-type Closable func() error
+var (
+	funcs []Closable
+)
 
-var funcs []Closable
+type Closable func() error
 
 func Add(f Closable) {
 	funcs = append(funcs, f)

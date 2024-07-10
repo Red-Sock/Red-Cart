@@ -14,9 +14,11 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
+// nolint
 func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 
+	//nolint
 	if len(cart.Cart.Items) == 0 {
 		text = scripts.Get(ctx, scripts.CartIsEmpty)
 
@@ -74,10 +76,15 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 		Text:   text,
 		Keys:   keys,
 	}
+	err := chat.SendMessage(out)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
 
-	return out, chat.SendMessage(out)
+	return out, nil
 }
 
+// nolint
 func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 	if len(cart.Cart.Items) == 0 {
@@ -120,5 +127,10 @@ func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCar
 		Keys:   keys,
 	}
 
-	return out, chat.SendMessage(out)
+	err := chat.SendMessage(out)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+
+	return out, nil
 }

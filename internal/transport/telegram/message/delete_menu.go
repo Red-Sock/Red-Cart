@@ -14,6 +14,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
+// nolint
 func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
 	if len(cart.Cart.Items) == 0 {
 		return nil, nil

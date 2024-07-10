@@ -11,25 +11,30 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
-	instruction, ok := d.expectedInstructions[scripts.GetLang(in.From.LanguageCode)][in.Text]
+func (d *DefaultHandler) basicInputs(msgIn *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
+	instruction, ok := d.expectedInstructions[scripts.GetLang(msgIn.From.LanguageCode)][msgIn.Text]
 	if !ok {
 		return false, nil
 	}
 
 	_ = out.SendMessage(&response.DeleteMessage{
-		ChatId:    in.Chat.ID,
-		MessageId: int64(in.MessageID),
+		ChatId:    msgIn.Chat.ID,
+		MessageId: int64(msgIn.MessageID),
 	})
 	var msg tgapi.MessageOut
 	var err error
 	switch instruction {
 	case scripts.OpenSetting:
-		msg, err = message.CartSettings(in.Ctx, out, userCart)
+		msg, err = message.CartSettings(msgIn.Ctx, out, userCart)
 	case scripts.Clear:
-		msg, err = message.Delete(in.Ctx, out, userCart)
+		msg, err = message.Delete(msgIn.Ctx, out, userCart)
 	default:
-		return true, out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
+		err = out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
+		if err != nil {
+			return false, errors.Wrap(err)
+		}
+
+		return true, nil
 	}
 
 	if err != nil {
@@ -40,16 +45,21 @@ func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCa
 		return true, nil
 	}
 
-	if !in.IsCallback {
+	if !msgIn.IsCallback {
 		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
-			MessageId: int64(in.MessageID),
+			ChatId:    msgIn.Chat.ID,
+			MessageId: int64(msgIn.MessageID),
 		})
 	}
 
-	err = d.cartService.SyncCartMessage(in.Ctx, userCart, msg)
+	err = d.cartService.SyncCartMessage(msgIn.Ctx, userCart, msg)
 	if err != nil {
-		return true, out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return false, errors.Wrap(err)
+		}
+
+		return true, nil
 	}
 
 	return true, nil

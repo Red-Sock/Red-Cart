@@ -1,23 +1,25 @@
 package scripts
 
-var ru = map[PhraseKey]string{
-	OpenSetting: "Настроить корзину " + SettingIcon,
-	CreateCart:  "Создать корзину " + CartIcon,
-	Clear:       "Удалить товар / очистить корзину " + BinIcon,
-	PurgeCart:   "Очистить корзину" + PurgeIcon,
-	CartIsEmpty: "Корзина пуста",
+var (
+	ru = map[PhraseKey]string{
+		OpenSetting: "Настроить корзину " + SettingIcon,
+		CreateCart:  "Создать корзину " + CartIcon,
+		Clear:       "Удалить товар / очистить корзину " + BinIcon,
+		PurgeCart:   "Очистить корзину" + PurgeIcon,
+		CartIsEmpty: "Корзина пуста",
 
-	ClickToRemove: "Нажмите для удаления",
-	Cart:          "Корзина" + CartIcon,
+		ClickToRemove: "Нажмите для удаления",
+		Cart:          "Корзина" + CartIcon,
 
-	Rename: "Переименовать " + EditIcon,
+		Rename: "Переименовать " + EditIcon,
 
-	Welcome:     "Добро пожаловать!",
-	WelcomeBack: "С возвращением!",
+		Welcome:     "Добро пожаловать!",
+		WelcomeBack: "С возвращением!",
 
-	WelcomeMessagePattern: CartIcon + `
+		WelcomeMessagePattern: CartIcon + `
 Корзина по умолчанию: %d
 
 Для добавления продуктов просто введите их название
 `,
-}
+	}
+)

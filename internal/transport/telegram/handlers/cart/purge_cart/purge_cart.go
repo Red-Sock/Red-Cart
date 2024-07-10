@@ -24,40 +24,40 @@ func New(cartService service.CartService) *Handler {
 }
 
 // Handle expects to have cart id as a given parameter
-func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < 1 {
+func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) < 1 {
 		return out.SendMessage(response.NewMessage("expecting to have a cart id as an argument"))
 	}
 
-	cartId, err := strconv.ParseInt(in.Args[0], 10, 64)
+	cartId, err := strconv.ParseInt(msgIn.Args[0], 10, 64)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("expected for cart id to be integer: " + err.Error()))
 	}
 
-	err = h.cartService.PurgeCart(in.Ctx, cartId)
+	err = h.cartService.PurgeCart(msgIn.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	cart, err := h.cartService.GetCartById(in.Ctx, cartId)
+	cart, err := h.cartService.GetCartById(msgIn.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, cart)
+	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	err = h.cartService.SyncCartMessage(in.Ctx, cart, msg)
+	err = h.cartService.SyncCartMessage(msgIn.Ctx, cart, msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	if !in.IsCallback {
+	if !msgIn.IsCallback {
 		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    in.Chat.ID,
-			MessageId: int64(in.MessageID),
+			ChatId:    msgIn.Chat.ID,
+			MessageId: int64(msgIn.MessageID),
 		})
 	}
 

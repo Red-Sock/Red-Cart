@@ -4,6 +4,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -32,17 +33,27 @@ func NewDefaultCommandHandler(
 	}
 }
 
-func (d *DefaultHandler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) == 0 || in.Command != "" {
-		return out.SendMessage(response.NewMessage("unknown functionality " + in.Command))
+func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	if len(msgIn.Args) == 0 || msgIn.Command != "" {
+		err := out.SendMessage(response.NewMessage("unknown functionality " + msgIn.Command))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	userCart, err := d.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
+	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		err = out.SendMessage(response.NewMessage(err.Error()))
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
 	}
 
-	ok, err := d.basicInputs(in, userCart, out)
+	ok, err := d.basicInputs(msgIn, userCart, out)
 	if err != nil {
 		return err
 	}
@@ -51,7 +62,7 @@ func (d *DefaultHandler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	ok, err = d.cartInputs(in, userCart, out)
+	ok, err = d.cartInputs(msgIn, userCart, out)
 	if err != nil {
 		return err
 	}

@@ -15,7 +15,7 @@ type Handler struct {
 
 func New(cfg config.Config) *Handler {
 	return &Handler{
-		version: cfg.AppInfo().Version,
+		version: cfg.GetAppInfo().Version,
 	}
 }
 

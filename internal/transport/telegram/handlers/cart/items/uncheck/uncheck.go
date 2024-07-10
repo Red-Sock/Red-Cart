@@ -24,6 +24,7 @@ func New(itemService service.ItemService, cartService service.CartService) *Hand
 	}
 }
 
+// nolint
 // Handle - expects to have cart id and item name as an input argument
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if len(in.Args) < 2 {

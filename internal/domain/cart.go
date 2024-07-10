@@ -4,6 +4,11 @@ import (
 	"context"
 )
 
+const (
+	CartStateAdding          = "adding"
+	CartStateEditingItemName = "editing_item_name"
+)
+
 type CartRepo interface {
 	Create(ctx context.Context, idOwner int64) (id int64, err error)
 
@@ -34,11 +39,6 @@ type CartFilter struct {
 }
 
 type cartState string
-
-const (
-	CartStateAdding          = "adding"
-	CartStateEditingItemName = "editing_item_name"
-)
 
 type Cart struct {
 	ID    int64
