@@ -2,8 +2,6 @@ module github.com/Red-Sock/Red-Cart
 
 go 1.22
 
-toolchain go1.22.1
-
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/Red-Sock/go_tg v0.0.18
