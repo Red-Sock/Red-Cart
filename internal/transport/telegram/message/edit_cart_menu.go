@@ -7,6 +7,7 @@ import (
 	"github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -40,5 +41,10 @@ func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain
 	msg := response.NewMessage(msgTxt)
 	msg.AddKeyboard(keys)
 
-	return msg, chat.SendMessage(msg)
+	err := chat.SendMessage(msg)
+	if err != nil {
+		return nil, errors.Wrap(err, "error sending message")
+	}
+
+	return msg, nil
 }

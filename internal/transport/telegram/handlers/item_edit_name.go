@@ -6,6 +6,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
@@ -44,7 +45,7 @@ func (d *DefaultHandler) editItemName(in *model.MessageIn, out tgapi.Chat, cart 
 
 	msg, err := message.OpenCart(in.Ctx, out, cart)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	err = d.cartService.SyncCartMessage(in.Ctx, cart, msg)

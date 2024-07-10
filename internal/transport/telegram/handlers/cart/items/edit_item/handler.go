@@ -4,6 +4,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -47,7 +48,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 
 	msg, err := message.EditFromCartItem(in.Ctx, out, cart, *itemInCart)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "error assembling edit from cart item message")
 	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, cart, msg)

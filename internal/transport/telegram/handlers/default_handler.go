@@ -15,7 +15,8 @@ type DefaultHandler struct {
 	cartService service.CartService
 	itemService service.ItemService
 
-	expectedInstructions map[string]map[string]scripts.PhraseKey // lang ->> instruction name on native language ->> instruction
+	// lang ->> instruction name on native language ->> instruction
+	expectedInstructions map[string]map[string]scripts.PhraseKey
 }
 
 func NewDefaultCommandHandler(

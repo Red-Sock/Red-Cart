@@ -53,7 +53,7 @@ func (s *Repository) Check(ctx context.Context, cartId int64, itemName string) e
 		AND   item_name = $2
 `, cartId, itemName)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	return nil
@@ -67,7 +67,7 @@ func (s *Repository) Uncheck(ctx context.Context, cartId int64, itemName string)
 		AND   item_name = $2
 `, cartId, itemName)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
 
 	return nil

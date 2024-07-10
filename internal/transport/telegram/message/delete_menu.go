@@ -7,6 +7,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -25,7 +26,6 @@ func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.Me
 
 	items, key := itemList(cart.Cart.Items)
 	for i, itemName := range items {
-
 		keys.AddButton(
 			itemName+scripts.DeleteIcon,
 			commands.DeleteItem+" "+cartIdStr+" "+key[i])
@@ -45,14 +45,17 @@ func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.Me
 		}
 
 		err := out.SendMessage(msg)
-
 		if err == nil {
-			return msg, err
+			return msg, errors.Wrap(err, "error sending message")
 		}
 	}
 
 	msg := response.NewMessage(text)
 	msg.AddKeyboard(keys)
+	err := out.SendMessage(msg)
+	if err != nil {
+		return nil, errors.Wrap(err, "error sending message")
+	}
 
-	return msg, out.SendMessage(msg)
+	return msg, nil
 }

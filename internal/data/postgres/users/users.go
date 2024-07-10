@@ -62,6 +62,7 @@ func (u *Users) Get(ctx context.Context, userId int64) (*domain.User, error) {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
+
 		return nil, errors.Wrap(err, "error getting user from database")
 	}
 

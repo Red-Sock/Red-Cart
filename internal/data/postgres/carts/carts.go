@@ -58,7 +58,7 @@ func (c *Repo) LinkUserToCart(ctx context.Context, userId int64, cartId int64) e
 		return errors.Wrap(err, "error executing db query")
 	}
 
-	return err
+	return errors.Wrap(err)
 }
 
 func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Cart, error) {
@@ -121,6 +121,7 @@ func (c *Repo) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.UserCar
 
 		return nil, errors.Wrap(err, "error getting cart by ownerId from database")
 	}
+
 	return &dbCart, nil
 }
 

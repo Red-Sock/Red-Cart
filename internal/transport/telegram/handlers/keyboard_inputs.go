@@ -4,6 +4,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
@@ -32,7 +33,7 @@ func (d *DefaultHandler) basicInputs(in *model.MessageIn, userCart domain.UserCa
 	}
 
 	if err != nil {
-		return true, err
+		return true, errors.Wrap(err, "error assembling message")
 	}
 
 	if msg == nil {

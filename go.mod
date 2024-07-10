@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/Red-Sock/go_tg v0.0.18
-	github.com/Red-Sock/trace-errors v0.0.5
+	github.com/Red-Sock/trace-errors v0.0.7
 	github.com/godverv/matreshka v0.0.15
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/pressly/goose/v3 v3.19.2

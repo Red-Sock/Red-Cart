@@ -7,6 +7,7 @@ import (
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
@@ -53,7 +54,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 
 	cartMsg, err := message.OpenCart(in.Ctx, out, startMessage.UserCart)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "open cart error")
 	}
 
 	err = h.cartSrv.SyncCartMessage(in.Ctx, startMessage.UserCart, cartMsg)

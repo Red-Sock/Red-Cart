@@ -10,6 +10,8 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
+var ErrNoDefaultCart = errors.New("Отсутствует корзина по умолчанию")
+
 type Service struct {
 	userData domain.UserRepo
 	cartData domain.CartRepo
@@ -18,7 +20,7 @@ type Service struct {
 func (u *Service) GetCartByChat(ctx context.Context, userID int64) (domain.UserCart, error) {
 	userCart, err := u.cartData.GetCartByChatId(ctx, userID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	if userCart == nil {
@@ -27,7 +29,7 @@ func (u *Service) GetCartByChat(ctx context.Context, userID int64) (domain.UserC
 
 	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	return *userCart, nil
@@ -40,7 +42,7 @@ func New(uD domain.UserRepo, cartData domain.CartRepo) *Service {
 	}
 }
 
-func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) (message domain.StartMessagePayload, err error) {
+func (u *Service) Start(ctx context.Context, newUser domain.User, _ int64) (message domain.StartMessagePayload, err error) {
 	user, err := u.userData.Get(ctx, newUser.ID)
 	if err != nil {
 		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error creating new user")
@@ -71,7 +73,7 @@ func (u *Service) Start(ctx context.Context, newUser domain.User, chatID int64) 
 		message.Cart = userCart.Cart
 		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
 	} else {
-		message.Cart.ID, err = u.createCartForUser(ctx, newUser, chatID)
+		message.Cart.ID, err = u.createCartForUser(ctx, newUser)
 	}
 	if err != nil {
 		return domain.StartMessagePayload{
@@ -98,16 +100,16 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 
 	cart.Cart, err = u.cartData.GetUserDefaultCart(ctx, userID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	if cart.Cart.ID == 0 {
-		return domain.UserCart{}, errors.New(fmt.Sprintf("Для пользователя id = %d не задано корзины по умолчанию ", userID))
+		return domain.UserCart{}, errors.Wrap(ErrNoDefaultCart)
 	}
 
 	err = u.cartData.AddCartItems(ctx, items, cart.Cart.ID, userID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	cart.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.Cart.ID)
@@ -118,7 +120,7 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 	return cart, nil
 }
 
-func (u *Service) createCartForUser(ctx context.Context, user domain.User, chatID int64) (int64, error) {
+func (u *Service) createCartForUser(ctx context.Context, user domain.User) (int64, error) {
 	cartID, err := u.cartData.Create(ctx, user.ID)
 	if err != nil {
 		return 0, errors.Wrap(err, "error creating cart")

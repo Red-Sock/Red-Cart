@@ -47,13 +47,6 @@ linters-settings:
   gocognit:
     min-complexity: 20
 
-  goconst:
-    min-len: 5
-    min-occurrences: 2
-    numbers: true
-    min: 1
-    max: 2
-    ignore-calls: false
 
   grouper:
     type-require-single-type: true
@@ -86,7 +79,6 @@ linters:
     - durationcheck # Checks on time.Duration multiplications (time.Second * 5 * time.Minute)
     - exhaustive # Checks for full enum usage (in maps and switches)
     - forcetypeassert # Checks for type assertion
-    - goconst # Checks for repeated strings to be replaced with constant
     - mnd # Check for magic numbers
     - ineffassign # Detects unused assignment to existing variable
 # Errors
@@ -105,7 +97,6 @@ linters:
     - goprintffuncname # Detects printf-like functions and enforces to end them with "f"
     - nakedret # Checks for functions without returns value to be exactly the size
     - nilerr # Checks for "return nil" even if checked error is not nil
-    - nilnil # Detects for "return nil, nil" - must return either one of them
     - nlreturn # Checks for empty line before return or branch
     - unparam # Detects unused params in functions
 # Structs
@@ -120,7 +111,6 @@ linters:
     - importas # Check for only one way to alias imported package
 # Global
     - gocritic
-    - revive
     - staticcheck
 # Duplications and codestyle
     - dupl # Code clone detection

@@ -55,7 +55,7 @@ func (c *Service) GetCartByChatId(ctx context.Context, chatID int64) (domain.Use
 func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, userID int64) (domain.UserCart, error) {
 	cart, err := c.cartData.GetCartByID(ctx, cartID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	if cart == nil {
@@ -72,13 +72,13 @@ func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, us
 		return domain.UserCart{}, errors.Wrap(err, "error getting actual cart items")
 	}
 
-	return *cart, err
+	return *cart, errors.Wrap(err)
 }
 
 func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error) {
 	uc, err := c.cartData.GetCartByID(ctx, cartID)
 	if err != nil {
-		return domain.UserCart{}, err
+		return domain.UserCart{}, errors.Wrap(err)
 	}
 
 	if uc == nil {
@@ -100,6 +100,10 @@ func (c *Service) AwaitNameChange(ctx context.Context, cartID int64, item domain
 	}
 
 	req.StatePayload, err = json.Marshal(domain.ChangeItemNamePayload{ItemName: item.Name})
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	err = c.cartData.ChangeState(ctx, req)
 	if err != nil {
 		return errors.Wrap(err, "error changing state of cart")

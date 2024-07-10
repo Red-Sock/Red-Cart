@@ -7,6 +7,7 @@ import (
 	"github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -29,8 +30,12 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 		} else {
 			msg = response.NewMessage(text)
 		}
+		err := chat.SendMessage(msg)
+		if err != nil {
+			return nil, errors.Wrap(err, "error sending cart message")
+		}
 
-		return msg, chat.SendMessage(msg)
+		return msg, nil
 	}
 
 	text = scripts.Get(ctx, scripts.Cart)
