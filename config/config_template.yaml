@@ -11,6 +11,6 @@ data_sources:
       name: red_cart
       ssl_mode: ""
     - resource_name: telegram
-      api_key: 6439880267:AAFvR36Gq36FiPnzsocw9ctmbAYrGq_Yzjc
+      api_key: telegram_bot_token
 server: []
 environment: []
