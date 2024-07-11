@@ -47,18 +47,18 @@ func (c *Repo) SetDefaultCart(ctx context.Context, userID int64, cartID int64) e
 	return nil
 }
 
-func (c *Repo) LinkUserToCart(ctx context.Context, userId int64, cartId int64) error {
+func (c *Repo) LinkUserToCart(ctx context.Context, userId, cartId, chatId int64) error {
 	_, err := c.conn.Exec(ctx, `
 	INSERT INTO carts_users
-			(user_id, cart_id, is_default) 
-	VALUES  ($1, $2, $3)
+			(user_id, cart_id, chat_id, is_default) 
+	VALUES  ($1, $2, $3, $4)
 	ON CONFLICT DO NOTHING 
-	`, userId, cartId, false)
+	`, userId, cartId, chatId, false)
 	if err != nil {
 		return errors.Wrap(err, "error executing db query")
 	}
 
-	return errors.Wrap(err)
+	return nil
 }
 
 func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Cart, error) {
@@ -93,22 +93,20 @@ func (c *Repo) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.UserCar
 	var dbCart domain.UserCart
 	err := c.conn.QueryRow(ctx, `
 	SELECT 
-		c.id,
-		c.owner_id,
-		
-		cu.chat_id,
-		cu.message_id,
-		
-		c.state,
-		c.state_payload
-	FROM carts c
-	JOIN carts_users cu ON cu.cart_id = c.id
-	AND cu.user_id = $1
+		cart.id,
+		cart.owner_id,
+		user_cart.chat_id,
+		user_cart.message_id,	
+		cart.state,
+		cart.state_payload
+	FROM carts cart
+	JOIN carts_users user_cart ON user_cart.cart_id = cart.id
+	AND user_cart.user_id = $1
 	WHERE owner_id = $1`,
 		ownerId).
 		Scan(
 			&dbCart.Cart.ID,
-			&dbCart.User.ID,
+			&dbCart.User.Id,
 			&dbCart.Cart.ChatId,
 			&dbCart.Cart.MessageId,
 			&dbCart.Cart.State,
@@ -196,7 +194,7 @@ func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.UserCart) er
 		    chat_id = $1,
 		    message_id = $2 
 		WHERE cart_id = $3 AND user_id = $4
-`, cart.Cart.ChatId, cart.Cart.MessageId, cart.Cart.ID, cart.User.ID)
+`, cart.Cart.ChatId, cart.Cart.MessageId, cart.Cart.ID, cart.User.Id)
 	if err != nil {
 		return errors.Wrap(err, "error updating cart")
 	}
@@ -223,7 +221,7 @@ func (c *Repo) GetCartByChatId(ctx context.Context, chatId int64) (resp *domain.
 `, chatId).
 		Scan(
 			&resp.Cart.ID,
-			&resp.User.ID,
+			&resp.User.Id,
 
 			&resp.Cart.ChatId,
 			&resp.Cart.MessageId,
@@ -255,7 +253,7 @@ func (c *Repo) GetCartByID(ctx context.Context, id int64) (*domain.UserCart, err
 `, id).
 		Scan(
 			&resp.Cart.ID,
-			&resp.User.ID,
+			&resp.User.Id,
 
 			&resp.Cart.ChatId,
 			&resp.Cart.MessageId,

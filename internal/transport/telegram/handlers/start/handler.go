@@ -31,7 +31,7 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	newUser := domain.User{
-		ID:        msgIn.From.ID,
+		Id:        msgIn.From.ID,
 		UserName:  msgIn.From.UserName,
 		FirstName: msgIn.From.FirstName,
 		LastName:  msgIn.From.LastName,

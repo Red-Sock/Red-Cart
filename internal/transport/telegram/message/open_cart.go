@@ -72,7 +72,7 @@ func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (
 	}
 
 	out := &response.MessageOut{
-		ChatId: cart.User.ID,
+		ChatId: cart.User.Id,
 		Text:   text,
 		Keys:   keys,
 	}
@@ -122,7 +122,7 @@ func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCar
 	}
 
 	out := &response.MessageOut{
-		ChatId: cart.User.ID,
+		ChatId: cart.User.Id,
 		Text:   text,
 		Keys:   keys,
 	}
