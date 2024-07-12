@@ -3,6 +3,7 @@ package start
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
+	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 	errors "github.com/Red-Sock/trace-errors"
 	"github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/parsing"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
 type Handler struct {
@@ -41,8 +43,14 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		h.removePreviousMessage(&startMessage, out)
 	}
 
-	welcomeMsg := response.NewMessage(startMessage.Msg)
-	err = out.SendMessage(welcomeMsg)
+	startMsg := response.NewMessage(startMessage.Msg)
+
+	startKeyboard := &keyboard.GridKeyboard{}
+	startKeyboard.AddButton(keyboard.NewButton(scripts.Get(msgIn.Ctx, scripts.OpenClearMenu), ""))
+	startKeyboard.SetIsReplyKeyboard(true)
+	startMsg.Keys = startKeyboard
+
+	err = out.SendMessage(startMsg)
 	if err != nil {
 		return errors.Wrap(err)
 	}

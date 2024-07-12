@@ -38,12 +38,12 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 
 	itemKey := strings.Join(in.Args, " ")
 
-	err = h.itemService.Uncheck(in.Ctx, userCart.Cart.ID, itemKey)
+	err = h.itemService.Uncheck(in.Ctx, userCart.Cart.Id, itemKey)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	userCart, err = h.cartService.GetCartById(in.Ctx, userCart.Cart.ID)
+	userCart, err = h.cartService.GetCartById(in.Ctx, userCart.Cart.Id)
 	if err != nil {
 		return errors.Wrap(err)
 	}

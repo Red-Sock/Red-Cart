@@ -41,7 +41,7 @@ type CartFilter struct {
 type cartState string
 
 type Cart struct {
-	ID    int64
+	Id    int64
 	Items []Item
 
 	ChatId    int64

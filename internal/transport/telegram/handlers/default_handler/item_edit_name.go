@@ -22,17 +22,17 @@ func (d *DefaultHandler) editItemName(msgIn *model.MessageIn, cart domain.UserCa
 		return nil, errors.Wrap(err)
 	}
 
-	err = d.itemService.UpdateName(msgIn.Ctx, cart.Cart.ID, p.ItemName, msgIn.Text)
+	err = d.itemService.UpdateName(msgIn.Ctx, cart.Cart.Id, p.ItemName, msgIn.Text)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	err = d.cartService.AwaitItemsAdded(msgIn.Ctx, cart.Cart.ID)
+	err = d.cartService.AwaitItemsAdded(msgIn.Ctx, cart.Cart.Id)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	cart, err = d.cartService.GetCartById(msgIn.Ctx, cart.Cart.ID)
+	cart, err = d.cartService.GetCartById(msgIn.Ctx, cart.Cart.Id)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

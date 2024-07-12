@@ -38,7 +38,7 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return errors.Wrap(err)
 	}
 
-	err = h.itemService.Check(in.Ctx, userCart.Cart.ID, itemKey)
+	err = h.itemService.Check(in.Ctx, userCart.Cart.Id, itemKey)
 	if err != nil {
 		return errors.Wrap(err)
 	}

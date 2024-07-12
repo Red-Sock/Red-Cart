@@ -11,6 +11,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/scripts"
+	"github.com/Red-Sock/Red-Cart/scripts/icons"
 )
 
 func OpenCart(ctx context.Context, userCart domain.UserCart) interfaces.MessageOut {
@@ -21,7 +22,13 @@ func OpenCart(ctx context.Context, userCart domain.UserCart) interfaces.MessageO
 	}
 
 	text = scripts.Get(ctx, scripts.Cart)
-	keys := CartKeys(userCart.Cart)
+
+	keys := &keyboard.GridKeyboard{
+		Columns: 1,
+	}
+	for _, item := range userCart.Cart.Items {
+		keys.AddButton(getCheckItemButton(item))
+	}
 
 	if userCart.Cart.MessageId != nil {
 		return &response.EditMessage{
@@ -56,44 +63,31 @@ func emptyCart(ctx context.Context, cart domain.UserCart) interfaces.MessageOut 
 	return msg
 }
 
-func CartKeys(cart domain.Cart) (keys *keyboard.FloatingKeyboard) {
-	if len(cart.Items) == 0 {
-		return nil
-	}
-	keys = &keyboard.FloatingKeyboard{}
-
-	items, itemKeys := itemList(cart.Items)
-	for i := range items {
-		row := make([]keyboard.Button, 0, 4)
-
-		row = append(row, getCheckItemButton(cart.Items[i], itemKeys[i]))
-
-		keys.AddRow(row)
-	}
-
-	return keys
-}
-
-func getCheckItemButton(item domain.Item, itemKey string) (key keyboard.Button) {
-
-	key.Text = item.Name
-	if item.Amount > 1 {
-		key.Text += "(" + strconv.Itoa(int(item.Amount)) + ")"
-	}
-
+func getCheckItemButton(item domain.Item) (key keyboard.Button) {
+	key.Text = getItemButtonName(item)
 	if item.Checked {
-		key.Text += scripts.CheckedIcon
-		key.Value = commands.NewUncheckCommand(itemKey)
+		key.Value = commands.NewUncheckCommand(item.Name)
 	} else {
-		key.Value = commands.NewCheckCommand(itemKey)
+		key.Value = commands.NewCheckCommand(item.Name)
 	}
 
 	return key
 }
 
-func getDeleteItemFromCart(itemKey string) (key keyboard.Button) {
-	return keyboard.Button{
-		Text:  scripts.BinIcon,
-		Value: commands.NewDeleteCommand(itemKey),
+func getDeleteItemButton(item domain.Item) (key keyboard.Button) {
+	key.Text = getItemButtonName(item)
+	key.Value = commands.NewDeleteCommand(item.Name)
+
+	return key
+}
+func getItemButtonName(item domain.Item) string {
+	name := item.Name
+	if item.Amount > 1 {
+		name += "(" + strconv.Itoa(int(item.Amount)) + ")"
 	}
+	if item.Checked {
+		name += icons.CheckedIcon
+	}
+
+	return name
 }

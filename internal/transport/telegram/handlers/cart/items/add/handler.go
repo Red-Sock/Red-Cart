@@ -36,7 +36,7 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out interfaces.Chat) error {
 		return errors.Wrap(err)
 	}
 
-	userCart, err = h.cartService.Add(msgIn.Ctx, items, userCart.Cart.ID, msgIn.From.ID)
+	userCart, err = h.cartService.Add(msgIn.Ctx, items, userCart.Cart.Id, msgIn.From.ID)
 	if err != nil {
 		return errors.Wrap(err)
 	}

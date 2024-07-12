@@ -74,7 +74,7 @@ func (c *Repo) GetUserDefaultCart(ctx context.Context, userID int64) (domain.Car
 		AND   cu.is_default`,
 		userID).
 		Scan(
-			&cart.ID,
+			&cart.Id,
 			&cart.ChatId,
 			&cart.MessageId,
 		)
@@ -105,7 +105,7 @@ func (c *Repo) GetByOwnerId(ctx context.Context, ownerId int64) (*domain.UserCar
 	WHERE owner_id = $1`,
 		ownerId).
 		Scan(
-			&dbCart.Cart.ID,
+			&dbCart.Cart.Id,
 			&dbCart.User.Id,
 			&dbCart.Cart.ChatId,
 			&dbCart.Cart.MessageId,
@@ -194,7 +194,7 @@ func (c *Repo) UpdateCartReference(ctx context.Context, cart domain.UserCart) er
 		    chat_id = $1,
 		    message_id = $2 
 		WHERE cart_id = $3 AND user_id = $4
-`, cart.Cart.ChatId, cart.Cart.MessageId, cart.Cart.ID, cart.User.Id)
+`, cart.Cart.ChatId, cart.Cart.MessageId, cart.Cart.Id, cart.User.Id)
 	if err != nil {
 		return errors.Wrap(err, "error updating cart")
 	}
@@ -220,7 +220,7 @@ func (c *Repo) GetCartByChatId(ctx context.Context, chatId int64) (resp *domain.
 		AND cu.chat_id = $1
 `, chatId).
 		Scan(
-			&resp.Cart.ID,
+			&resp.Cart.Id,
 			&resp.User.Id,
 
 			&resp.Cart.ChatId,
@@ -252,7 +252,7 @@ func (c *Repo) GetCartByID(ctx context.Context, id int64) (*domain.UserCart, err
 		WHERE id = $1
 `, id).
 		Scan(
-			&resp.Cart.ID,
+			&resp.Cart.Id,
 			&resp.User.Id,
 
 			&resp.Cart.ChatId,
@@ -275,7 +275,7 @@ func (c *Repo) ChangeState(ctx context.Context, req domain.Cart) error {
 		    state = $1,
 		    state_payload = $2 
 		WHERE id = $3
-`, req.State, req.StatePayload, req.ID)
+`, req.State, req.StatePayload, req.Id)
 
 	if err != nil {
 		return errors.Wrap(err, "error updating cart state")

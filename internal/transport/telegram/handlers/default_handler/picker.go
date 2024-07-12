@@ -30,8 +30,8 @@ func (d *DefaultHandler) pickHandler(msgIn *model.MessageIn) (interfaces.Handler
 }
 
 func (d *DefaultHandler) pickBasicHandler(msgIn *model.MessageIn) interfaces.Handler {
-	lang := scripts.GetLang(msgIn.From.LanguageCode)
-	langInstr, ok := d.expectedInstructions[lang]
+	lang := scripts.GetLangFromCtx(msgIn.Ctx)
+	langInstr, ok := d.expectedInstructions[string(lang)]
 	if !ok {
 		return nil
 	}
@@ -42,7 +42,7 @@ func (d *DefaultHandler) pickBasicHandler(msgIn *model.MessageIn) interfaces.Han
 	}
 
 	switch instruction {
-	case scripts.Clear:
+	case scripts.OpenClearMenu:
 		return d.handlers[commands.ClearMenu]
 	default:
 		return nil

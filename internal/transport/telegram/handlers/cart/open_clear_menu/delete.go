@@ -1,8 +1,6 @@
 package open_clear_menu
 
 import (
-	"strconv"
-
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
@@ -10,6 +8,7 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 )
 
@@ -25,23 +24,9 @@ func New(srv service.Service) *Handler {
 
 // Handle expects to have cart id as an argument
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
-	if len(msgIn.Args) < 1 {
-		return out.SendMessage(response.NewMessage("required to have cart id as an argument"))
-	}
+	defer helpers.DeleteIncomingMessage(msgIn, out)
 
-	cartId, err := strconv.ParseInt(msgIn.Args[0], 10, 64)
-	if err != nil {
-		return out.SendMessage(response.NewMessage("required to have cart id - integer"))
-	}
-
-	if !msgIn.IsCallback {
-		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    msgIn.Chat.ID,
-			MessageId: int64(msgIn.MessageID),
-		})
-	}
-
-	cart, err := h.cartService.GetCartByChatId(msgIn.Ctx, cartId)
+	cart, err := h.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
 	if err != nil {
 		return out.SendMessage(response.NewMessage("error getting cart for current chat"))
 	}
@@ -50,7 +35,7 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	msg := message.ClearCart(msgIn.Ctx, cart)
+	msg := message.ClearCartMenu(msgIn.Ctx, cart)
 	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err, "error assembling delete message")

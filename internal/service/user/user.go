@@ -29,7 +29,7 @@ func (u *Service) GetCartByChat(ctx context.Context, userID int64) (domain.UserC
 		return domain.UserCart{}, errors.New("no such cart")
 	}
 
-	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
+	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.Id)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err)
 	}
@@ -57,7 +57,7 @@ func (u *Service) Start(ctx context.Context, userIn domain.User, chatId int64) (
 
 	if userCart != nil {
 		message.Cart = userCart.Cart
-		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
+		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.Id)
 	} else {
 		message.Cart, err = u.createCartForUser(ctx, userIn, chatId)
 	}
@@ -67,7 +67,7 @@ func (u *Service) Start(ctx context.Context, userIn domain.User, chatId int64) (
 		}, errors.Wrap(err)
 	}
 
-	message.Msg += fmt.Sprintf(scripts.Get(ctx, scripts.WelcomeMessagePattern), message.Cart.ID)
+	message.Msg += fmt.Sprintf(scripts.Get(ctx, scripts.WelcomeMessagePattern), message.Cart.Id)
 
 	return message, nil
 }
@@ -90,16 +90,16 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 		return domain.UserCart{}, errors.Wrap(err)
 	}
 
-	if cart.Cart.ID == 0 {
+	if cart.Cart.Id == 0 {
 		return domain.UserCart{}, errors.Wrap(ErrNoDefaultCart)
 	}
 
-	err = u.cartData.AddCartItems(ctx, items, cart.Cart.ID, userID)
+	err = u.cartData.AddCartItems(ctx, items, cart.Cart.Id, userID)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err)
 	}
 
-	cart.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.Cart.ID)
+	cart.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.Cart.Id)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err, "error getting cartItems")
 	}

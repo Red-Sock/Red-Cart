@@ -19,7 +19,7 @@ func (d *DefaultHandler) addItem(msgIn *model.MessageIn, userCart domain.UserCar
 		items = append(items, domain.Item{Name: item, Amount: 1})
 	}
 
-	cart, err := d.cartService.Add(msgIn.Ctx, items, userCart.Cart.ID, msgIn.From.ID)
+	cart, err := d.cartService.Add(msgIn.Ctx, items, userCart.Cart.Id, msgIn.From.ID)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
