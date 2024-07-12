@@ -4,6 +4,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
@@ -25,39 +26,32 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 }
 
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	defer func() {
+		err := out.SendMessage(&response.DeleteMessage{
+			ChatId:    msgIn.Chat.ID,
+			MessageId: int64(msgIn.MessageID),
+		})
+		if err != nil {
+			logrus.Errorf("error sending delete message command: %s", err)
+		}
+	}()
+
 	newUser := parsing.ToDomainUser(msgIn)
 
 	startMessage, err := h.userSrv.Start(msgIn.Ctx, newUser, msgIn.Chat.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	h.removePreviousMessage(&startMessage, out)
 
-	h.sendStartMessage(msgIn, startMessage, out)
-
-	return out.SendMessage(&response.DeleteMessage{
-		ChatId:    msgIn.Chat.ID,
-		MessageId: int64(msgIn.MessageID),
-	})
-}
-
-func (h *Handler) sendStartMessage(in *model.MessageIn, payload domain.StartMessagePayload, out tgapi.Chat) {
-	//cartId := strconv.Itoa(int(payload.Cart.ID))
-
-	msg := response.NewMessage(payload.Msg)
-
-	//keyboardReply := keyboard.Keyboard{}
-	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Cart), commands.Cart)
-	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.OpenSetting), commands.CartSetting+" "+cartId)
-	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.ClearMenu+" "+cartId)
-	//
-	//msg.AddKeyboard(keyboardReply)
-
-	err := out.SendMessage(msg)
+	msg := response.NewMessage(startMessage.Msg)
+	err = out.SendMessage(msg)
 	if err != nil {
-		logrus.Error(err.Error())
+		return errors.Wrap(err)
 	}
+
+	return nil
 }
 
 func (h *Handler) removePreviousMessage(startMessage *domain.StartMessagePayload, out tgapi.Chat) {
@@ -78,7 +72,6 @@ func (h *Handler) removePreviousMessage(startMessage *domain.StartMessagePayload
 	}
 
 	startMessage.Cart.MessageId = nil
-
 }
 
 func (h *Handler) GetDescription() string {
