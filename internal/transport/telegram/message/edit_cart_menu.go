@@ -20,7 +20,7 @@ func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain
 
 	cartId := strconv.Itoa(int(userCart.Cart.ID))
 
-	keys := keyboard.Keyboard{Columns: 2}
+	keys := &keyboard.GridKeyboard{}
 	keys.AddButton("🔙", commands.Cart)
 	keys.AddButton(scripts.Get(ctx, scripts.Rename), commands.RenameItem+" "+cartId+" "+item.Name)
 
@@ -29,7 +29,7 @@ func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain
 			ChatId:    userCart.Cart.ChatId,
 			MessageId: *userCart.Cart.MessageId,
 			Text:      msgTxt,
-			Keys:      &keys,
+			Keys:      keys,
 		}
 
 		err := chat.SendMessage(out)

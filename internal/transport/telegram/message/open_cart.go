@@ -47,10 +47,10 @@ func CartSettings(ctx context.Context, cart domain.UserCart) interfaces.MessageO
 		text = scripts.Get(ctx, scripts.Cart)
 	}
 
-	var keys *keyboard.Keyboard
+	var keys *keyboard.GridKeyboard
 
 	if len(cart.Cart.Items) != 0 {
-		keys = &keyboard.Keyboard{}
+		keys = &keyboard.GridKeyboard{}
 		keys.Columns = 1
 
 		itemsNames, itemKeys := itemList(cart.Cart.Items)
@@ -96,23 +96,56 @@ func emptyCart(ctx context.Context, cart domain.UserCart) interfaces.MessageOut 
 	return msg
 }
 
-func CartKeys(cart domain.Cart) (keys *keyboard.Keyboard) {
+func CartKeys(cart domain.Cart) (keys *keyboard.FloatingKeyboard) {
 	cartId := strconv.Itoa(int(cart.ID))
 	if len(cart.Items) == 0 {
 		return nil
 	}
-	keys = &keyboard.Keyboard{}
-	keys.Columns = 4
+	keys = &keyboard.FloatingKeyboard{}
 
 	items, itemKeys := itemList(cart.Items)
-	for i, itemName := range items {
-		if !cart.Items[i].Checked {
-			keys.AddButton(itemName, commands.CheckItem+" "+cartId+" "+itemKeys[i])
-		} else {
+	for i := range items {
+		row := make([]keyboard.Button, 0, 4)
 
-			keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.UncheckItem+" "+cartId+" "+itemKeys[i])
-		}
+		row = append(row, keyboard.Button{
+			Text:  "+",
+			Value: "+", // todo
+		})
+
+		row = append(row, getItemButton(cart.Items[i], cartId, itemKeys[i]))
+
+		row = append(row, keyboard.Button{
+			Text:  "-",
+			Value: "-", // todo
+		})
+
+		row = append(row, keyboard.Button{
+			Text:  scripts.BinIcon,
+			Value: "delete", // todo
+		})
+		keys.AddRow(row)
 	}
 
 	return keys
+}
+
+func getItemButton(item domain.Item, cartId, itemKey string) (key keyboard.Button) {
+	commandPrefix := commands.CheckItem
+
+	if item.Checked {
+		commandPrefix = commands.UncheckItem
+	}
+	key.Text = item.Name
+	if item.Amount > 1 {
+		key.Text += "(" + strconv.Itoa(int(item.Amount)) + ")"
+	}
+
+	if item.Checked {
+		key.Text += scripts.CheckedIcon
+		key.Value = commandPrefix + " "
+	}
+
+	key.Value += cartId + " " + itemKey
+
+	return key
 }

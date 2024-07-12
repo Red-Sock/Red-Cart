@@ -39,7 +39,11 @@ func NewDefaultCommandHandler(
 }
 
 func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
-	defer helpers.DeleteIncomingMessage(msgIn, out)
+	defer func() {
+		if !msgIn.IsCallback {
+			helpers.DeleteIncomingMessage(msgIn, out)
+		}
+	}()
 
 	if len(msgIn.Args) == 0 || msgIn.Command != "" {
 		err := out.SendMessage(response.NewMessage("unknown functionality " + msgIn.Command))

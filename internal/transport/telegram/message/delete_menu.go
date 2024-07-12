@@ -20,7 +20,7 @@ func ClearCart(ctx context.Context, cart domain.UserCart) tgapi.MessageOut {
 
 	cartIdStr := strconv.FormatUint(uint64(cart.Cart.ID), 10)
 
-	keys := keyboard.Keyboard{}
+	keys := &keyboard.GridKeyboard{}
 	keys.Columns = 1
 
 	items, key := itemList(cart.Cart.Items)
@@ -40,7 +40,7 @@ func ClearCart(ctx context.Context, cart domain.UserCart) tgapi.MessageOut {
 			ChatId:    cart.Cart.ChatId,
 			Text:      text,
 			MessageId: *cart.Cart.MessageId,
-			Keys:      &keys,
+			Keys:      keys,
 		}
 	}
 
