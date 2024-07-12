@@ -8,6 +8,10 @@ import (
 )
 
 func DeleteIncomingMessage(msgIn *model.MessageIn, out interfaces.Chat) {
+	if msgIn.IsCallback {
+		return
+	}
+
 	err := out.SendMessage(&response.DeleteMessage{
 		ChatId:    msgIn.Chat.ID,
 		MessageId: int64(msgIn.MessageID),
