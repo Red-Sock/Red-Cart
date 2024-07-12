@@ -17,10 +17,10 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(userService service.UserService, cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		userService: userService,
-		cartService: cartService,
+		userService: srv.User(),
+		cartService: srv.Cart(),
 	}
 }
 
@@ -94,5 +94,5 @@ func (h *Handler) sendRenameMessage(cart domain.Cart, oldItemName string, out tg
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Rename
+	return commands.RenameItem
 }

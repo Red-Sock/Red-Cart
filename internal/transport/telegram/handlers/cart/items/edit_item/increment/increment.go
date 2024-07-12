@@ -19,5 +19,5 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Increment
+	return commands.IncrementItemCount
 }

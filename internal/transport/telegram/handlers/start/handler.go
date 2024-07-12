@@ -20,10 +20,10 @@ type Handler struct {
 	cartSrv service.CartService
 }
 
-func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		userSrv: userSrv,
-		cartSrv: cartSrv,
+		userSrv: srv.User(),
+		cartSrv: srv.Cart(),
 	}
 }
 
@@ -40,8 +40,8 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	if startMessage.Cart.MessageId != nil {
 		h.removePreviousMessage(&startMessage, out)
 	}
-	welcomeMsg := response.NewMessage(startMessage.Msg)
 
+	welcomeMsg := response.NewMessage(startMessage.Msg)
 	err = out.SendMessage(welcomeMsg)
 	if err != nil {
 		return errors.Wrap(err)

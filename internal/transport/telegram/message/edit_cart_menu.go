@@ -22,7 +22,7 @@ func EditFromCartItem(ctx context.Context, chat interfaces.Chat, userCart domain
 
 	keys := keyboard.Keyboard{Columns: 2}
 	keys.AddButton("🔙", commands.Cart)
-	keys.AddButton(scripts.Get(ctx, scripts.Rename), commands.Rename+" "+cartId+" "+item.Name)
+	keys.AddButton(scripts.Get(ctx, scripts.Rename), commands.RenameItem+" "+cartId+" "+item.Name)
 
 	if userCart.Cart.MessageId != nil {
 		out := &response.EditMessage{

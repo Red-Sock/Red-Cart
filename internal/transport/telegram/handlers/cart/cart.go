@@ -16,10 +16,10 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(userService service.UserService, cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		userService: userService,
-		cartService: cartService,
+		userService: srv.User(),
+		cartService: srv.Cart(),
 	}
 }
 

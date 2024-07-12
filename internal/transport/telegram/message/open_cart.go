@@ -21,7 +21,7 @@ func OpenCart(ctx context.Context, userCart domain.UserCart) interfaces.MessageO
 	}
 
 	text = scripts.Get(ctx, scripts.Cart)
-	keys := cartKeys(userCart.Cart)
+	keys := CartKeys(userCart.Cart)
 
 	if userCart.Cart.MessageId != nil {
 		return &response.EditMessage{
@@ -55,7 +55,7 @@ func CartSettings(ctx context.Context, cart domain.UserCart) interfaces.MessageO
 
 		itemsNames, itemKeys := itemList(cart.Cart.Items)
 		for i, itemName := range itemsNames {
-			keys.AddButton(itemName, commands.Edit+" "+itemKeys[i])
+			keys.AddButton(itemName, commands.EditItem+" "+itemKeys[i])
 		}
 
 		keys.AddButton("️🔙", commands.Cart)
@@ -96,20 +96,21 @@ func emptyCart(ctx context.Context, cart domain.UserCart) interfaces.MessageOut 
 	return msg
 }
 
-func cartKeys(cart domain.Cart) (keys *keyboard.Keyboard) {
+func CartKeys(cart domain.Cart) (keys *keyboard.Keyboard) {
 	cartId := strconv.Itoa(int(cart.ID))
 	if len(cart.Items) == 0 {
 		return nil
 	}
 	keys = &keyboard.Keyboard{}
-	keys.Columns = 1
+	keys.Columns = 4
 
 	items, itemKeys := itemList(cart.Items)
 	for i, itemName := range items {
 		if !cart.Items[i].Checked {
-			keys.AddButton(itemName, commands.Check+" "+cartId+" "+itemKeys[i])
+			keys.AddButton(itemName, commands.CheckItem+" "+cartId+" "+itemKeys[i])
 		} else {
-			keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+itemKeys[i])
+
+			keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.UncheckItem+" "+cartId+" "+itemKeys[i])
 		}
 	}
 

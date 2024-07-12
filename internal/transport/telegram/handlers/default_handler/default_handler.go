@@ -19,18 +19,22 @@ type DefaultHandler struct {
 
 	// lang ->> instruction name on native language ->> instruction
 	expectedInstructions map[string]map[string]scripts.PhraseKey
+
+	handlers map[string]tgapi.CommandHandler
 }
 
 func NewDefaultCommandHandler(
-	us service.UserService,
-	cs service.CartService,
-	is service.ItemService,
+	srv service.Service,
+	handlers map[string]tgapi.CommandHandler,
 ) *DefaultHandler {
 	return &DefaultHandler{
-		userService:          us,
-		cartService:          cs,
-		itemService:          is,
+		userService: srv.User(),
+		cartService: srv.Cart(),
+		itemService: srv.Item(),
+
 		expectedInstructions: scripts.GetInstructions(),
+
+		handlers: handlers,
 	}
 }
 
@@ -46,46 +50,30 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
+	handler, err := d.pickHandler(msgIn)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	ok, err := d.basicInputs(msgIn, userCart, out)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	if ok {
+	if handler == nil {
 		return nil
 	}
 
-	ok, err = d.cartInputs(msgIn, userCart, out)
+	err = handler.Handle(msgIn, out)
 	if err != nil {
-		return err
-	}
-	if ok {
-		return nil
+		return errors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
-	var ok bool
-	var err error
+func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart) (tgapi.MessageOut, error) {
 	switch userCart.Cart.State {
 	case domain.CartStateAdding:
-		ok, err = true, d.addItem(in, out, userCart)
+		return d.addItem(in, userCart)
 	case domain.CartStateEditingItemName:
-		ok, err = true, d.editItemName(in, out, userCart)
+		return d.editItemName(in, userCart)
+	default:
+		return nil, nil
 	}
-	if err != nil {
-		return false, errors.Wrap(err)
-	}
-
-	if !ok {
-		return false, nil
-	}
-
-	return true, nil
 }

@@ -7,48 +7,41 @@ import (
 	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/config"
-	"github.com/Red-Sock/Red-Cart/internal/service"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/check"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/delete_item"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item/increment"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item/rename"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/uncheck"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/open_clear_menu"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/purge_cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/settings"
+	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/default_handler"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 )
 
 type Server struct {
 	bot go_tg.TgApi
 }
 
-func NewServer(_ config.Config, bot go_tg.TgApi, srv service.Storage) (s *Server) {
+func NewServer(_ config.Config, bot go_tg.TgApi, srv service.Service) (s *Server) {
 	s = &Server{
 		bot: bot,
 	}
 
 	{
-		s.bot.AddCommandHandler(start.New(srv.User(), srv.Cart()))
-		s.bot.SetDefaultCommandHandler(default_handler.NewDefaultCommandHandler(srv.User(), srv.Cart(), srv.Item()))
+		hs := newHandlerStore(srv)
 
-		s.bot.AddCommandHandler(cart.New(srv.User(), srv.Cart()))
+		s.bot.AddCommandHandler(hs.handlers[commands.Start])
 
-		s.bot.AddCommandHandler(edit_item.New(srv.User(), srv.Cart()))
-		s.bot.AddCommandHandler(rename.New(srv.User(), srv.Cart()))
-		s.bot.AddCommandHandler(increment.New())
-		s.bot.AddCommandHandler(check.New(srv.Item(), srv.Cart()))
-		s.bot.AddCommandHandler(uncheck.New(srv.Item(), srv.Cart()))
+		s.bot.AddCommandHandler(hs.handlers[commands.Cart])
 
-		s.bot.AddCommandHandler(open_clear_menu.New(srv.Cart()))
-		s.bot.AddCommandHandler(delete_item.New(srv.Item(), srv.Cart()))
+		s.bot.AddCommandHandler(hs.handlers[commands.EditItem])
+		s.bot.AddCommandHandler(hs.handlers[commands.RenameItem])
+		s.bot.AddCommandHandler(hs.handlers[commands.IncrementItemCount])
+		s.bot.AddCommandHandler(hs.handlers[commands.CheckItem])
+		s.bot.AddCommandHandler(hs.handlers[commands.UncheckItem])
 
-		s.bot.AddCommandHandler(settings.New(srv.Cart()))
+		s.bot.AddCommandHandler(hs.handlers[commands.ClearMenu])
+		s.bot.AddCommandHandler(hs.handlers[commands.DeleteItem])
 
-		s.bot.AddCommandHandler(purge_cart.New(srv.Cart()))
+		s.bot.AddCommandHandler(hs.handlers[commands.CartSetting])
+
+		s.bot.AddCommandHandler(hs.handlers[commands.Purge])
+
+		s.bot.SetDefaultCommandHandler(default_handler.NewDefaultCommandHandler(srv, hs.handlers))
 	}
 
 	return s

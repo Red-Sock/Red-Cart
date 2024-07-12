@@ -6,7 +6,7 @@ var (
 		CreateCart:  "Создать корзину " + CartIcon,
 		Clear:       "Удалить товар / очистить корзину " + BinIcon,
 		PurgeCart:   "Очистить корзину" + PurgeIcon,
-		CartIsEmpty: "Корзина пуста",
+		CartIsEmpty: "Корзина пуста. Для добавления продуктов просто введите их название",
 
 		ClickToRemove: "Нажмите для удаления",
 		Cart:          "Корзина" + CartIcon,
@@ -18,8 +18,6 @@ var (
 
 		WelcomeMessagePattern: CartIcon + `
 Корзина по умолчанию: %d
-
-Для добавления продуктов просто введите их название
 `,
 	}
 )

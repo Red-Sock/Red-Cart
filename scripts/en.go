@@ -6,7 +6,7 @@ var (
 		CreateCart:  "Create cart " + CartIcon,
 		Clear:       "Remove items / purge cart " + BinIcon,
 		PurgeCart:   "Purge cart" + PurgeIcon,
-		CartIsEmpty: "Cart is empty",
+		CartIsEmpty: "Cart is empty. Just in product names in order to add it to cart",
 
 		ClickToRemove: "Click to remove",
 		Cart:          "Cart " + CartIcon,
@@ -18,8 +18,6 @@ var (
 
 		WelcomeMessagePattern: CartIcon + `
 Default cart: %d
-
-Just in product names in order to add it to cart
 `,
 	}
 )

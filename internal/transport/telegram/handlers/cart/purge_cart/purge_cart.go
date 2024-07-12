@@ -17,9 +17,9 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		cartService: cartService,
+		cartService: srv.Cart(),
 	}
 }
 

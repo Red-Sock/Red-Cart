@@ -13,7 +13,7 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-func Delete(ctx context.Context, cart domain.UserCart) tgapi.MessageOut {
+func ClearCart(ctx context.Context, cart domain.UserCart) tgapi.MessageOut {
 	if len(cart.Cart.Items) == 0 {
 		return nil
 	}

@@ -31,3 +31,8 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+
+replace (
+	github.com/Red-Sock/go_tg => /Users/alexbukov/Yandex.Disk.localized/проекты/redsock/go_tg
+)

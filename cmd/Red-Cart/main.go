@@ -59,7 +59,7 @@ func main() {
 	tg := telegramserver.NewServer(
 		cfg,
 		telegram.New(tgConf),
-		*service.New(postgres.New(conn)),
+		service.New(postgres.New(conn)),
 	)
 
 	err = tg.Start(ctx)

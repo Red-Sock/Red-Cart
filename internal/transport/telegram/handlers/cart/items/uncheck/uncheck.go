@@ -17,14 +17,13 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(itemService service.ItemService, cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		itemService: itemService,
-		cartService: cartService,
+		itemService: srv.Item(),
+		cartService: srv.Cart(),
 	}
 }
 
-// nolint
 // Handle - expects to have cart id and item name as an input argument
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 	if len(in.Args) < 2 {
@@ -61,5 +60,5 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Uncheck
+	return commands.UncheckItem
 }

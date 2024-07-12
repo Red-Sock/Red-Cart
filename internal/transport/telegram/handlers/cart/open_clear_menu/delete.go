@@ -17,9 +17,9 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		cartService: cartService,
+		cartService: srv.Cart(),
 	}
 }
 
@@ -50,7 +50,7 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	msg := message.Delete(msgIn.Ctx, cart)
+	msg := message.ClearCart(msgIn.Ctx, cart)
 	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err, "error assembling delete message")

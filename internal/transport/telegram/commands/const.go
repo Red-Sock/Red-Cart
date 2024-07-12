@@ -6,13 +6,14 @@ const (
 	Cart        = "/cart"
 	CartSetting = "/cart_setting"
 
-	Edit      = "/edit"
-	Check     = "/check"
-	Uncheck   = "/uncheck"
-	Rename    = "/rename"
-	Increment = "/increment"
+	AddItem            = "item"
+	EditItem           = "/edit"
+	CheckItem          = "/check"
+	UncheckItem        = "/uncheck"
+	RenameItem         = "/rename"
+	IncrementItemCount = "/increment"
+	DeleteItem         = "/delete_item"
 
-	ClearMenu  = "/clear"
-	DeleteItem = "/delete_item"
-	Purge      = "/purge"
+	ClearMenu = "/clear"
+	Purge     = "/purge"
 )

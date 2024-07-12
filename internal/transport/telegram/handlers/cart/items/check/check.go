@@ -18,10 +18,10 @@ type Handler struct {
 	cartService service.CartService
 }
 
-func New(itemService service.ItemService, cartService service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		itemService: itemService,
-		cartService: cartService,
+		itemService: srv.Item(),
+		cartService: srv.Cart(),
 	}
 }
 
@@ -61,5 +61,5 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 }
 
 func (h *Handler) GetCommand() string {
-	return commands.Check
+	return commands.CheckItem
 }
