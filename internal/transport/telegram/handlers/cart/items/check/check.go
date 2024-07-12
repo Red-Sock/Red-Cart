@@ -1,8 +1,6 @@
 package check
 
 import (
-	"strconv"
-
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
@@ -27,21 +25,21 @@ func New(srv service.Service) *Handler {
 
 // Handle - expects to have cart id and item name as an input argument
 func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
-	if len(in.Args) < 2 {
+	if len(in.Args) < 1 {
 		return out.SendMessage(response.NewMessage("expect to have 2 argements as input - cart id and item name"))
 	}
 
-	cartId, err := strconv.ParseInt(in.Args[0], 10, 64)
-	if err != nil {
-		return out.SendMessage(response.NewMessage("cart id must be integer:" + err.Error()))
-	}
-
-	err = h.itemService.Check(in.Ctx, cartId, in.Args[1])
+	userCart, err := h.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	userCart, err := h.cartService.GetCartById(in.Ctx, cartId)
+	err = h.itemService.Check(in.Ctx, userCart.Cart.ID, in.Args[0])
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	userCart, err = h.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
 	if err != nil {
 		return errors.Wrap(err)
 	}

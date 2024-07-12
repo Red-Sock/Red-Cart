@@ -10,6 +10,7 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 )
 
@@ -34,6 +35,8 @@ func New(srv service.Service) *Handler {
 
 // Handle expects cart id and item name as arguments
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	defer helpers.DeleteIncomingMessage(msgIn, out)
+
 	if len(msgIn.Args) < minArgumentsLength {
 		return out.SendMessage(response.NewMessage("expects cart id and item name as arguments"))
 	}
@@ -51,31 +54,6 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	cart, err := h.cartService.GetCartById(msgIn.Ctx, cartId)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
-	}
-
-	if !msgIn.IsCallback {
-		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    msgIn.Chat.ID,
-			MessageId: *cart.Cart.MessageId,
-		})
-
-		msg := message.OpenCart(msgIn.Ctx, cart)
-		err = out.SendMessage(msg)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		return nil
-	}
-
-	if len(cart.Cart.Items) != 0 {
-		msg := message.ClearCart(msgIn.Ctx, cart)
-		err = out.SendMessage(msg)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		return nil
 	}
 
 	msg := message.OpenCart(msgIn.Ctx, cart)

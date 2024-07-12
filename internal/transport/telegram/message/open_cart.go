@@ -130,11 +130,8 @@ func CartKeys(cart domain.Cart) (keys *keyboard.FloatingKeyboard) {
 }
 
 func getItemButton(item domain.Item, cartId, itemKey string) (key keyboard.Button) {
-	commandPrefix := commands.CheckItem
+	key.Value = commands.CheckItem
 
-	if item.Checked {
-		commandPrefix = commands.UncheckItem
-	}
 	key.Text = item.Name
 	if item.Amount > 1 {
 		key.Text += "(" + strconv.Itoa(int(item.Amount)) + ")"
@@ -142,10 +139,14 @@ func getItemButton(item domain.Item, cartId, itemKey string) (key keyboard.Butto
 
 	if item.Checked {
 		key.Text += scripts.CheckedIcon
-		key.Value = commandPrefix + " "
+		key.Value = commands.UncheckItem
 	}
 
-	key.Value += cartId + " " + itemKey
+	key.Value += " " + itemKey
 
 	return key
+}
+
+func getAddItemButton(item domain.Item) {
+
 }
