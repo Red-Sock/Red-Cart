@@ -3,16 +3,12 @@ package commands
 const (
 	Start = "/start"
 
-	Cart        = "/cart"
-	CartSetting = "/cart_setting"
+	Cart = "/cart"
 
-	AddItem            = "item"
-	EditItem           = "/edit"
-	CheckItem          = "/check"
-	UncheckItem        = "/uncheck"
-	RenameItem         = "/rename"
-	IncrementItemCount = "/increment"
-	DeleteItem         = "/delete_item"
+	AddItem     = "item"
+	CheckItem   = "/check"
+	UncheckItem = "/uncheck"
+	DeleteItem  = "/delete_item"
 
 	ClearMenu = "/clear"
 	Purge     = "/purge"

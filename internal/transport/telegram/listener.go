@@ -28,16 +28,11 @@ func NewServer(_ config.Config, bot go_tg.TgApi, srv service.Service) (s *Server
 
 		s.bot.AddCommandHandler(hs.handlers[commands.Cart])
 
-		s.bot.AddCommandHandler(hs.handlers[commands.EditItem])
-		s.bot.AddCommandHandler(hs.handlers[commands.RenameItem])
-		s.bot.AddCommandHandler(hs.handlers[commands.IncrementItemCount])
 		s.bot.AddCommandHandler(hs.handlers[commands.CheckItem])
 		s.bot.AddCommandHandler(hs.handlers[commands.UncheckItem])
 
 		s.bot.AddCommandHandler(hs.handlers[commands.ClearMenu])
 		s.bot.AddCommandHandler(hs.handlers[commands.DeleteItem])
-
-		s.bot.AddCommandHandler(hs.handlers[commands.CartSetting])
 
 		s.bot.AddCommandHandler(hs.handlers[commands.Purge])
 

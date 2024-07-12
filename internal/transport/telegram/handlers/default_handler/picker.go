@@ -42,8 +42,6 @@ func (d *DefaultHandler) pickBasicHandler(msgIn *model.MessageIn) interfaces.Han
 	}
 
 	switch instruction {
-	case scripts.OpenSetting:
-		return d.handlers[commands.CartSetting]
 	case scripts.Clear:
 		return d.handlers[commands.ClearMenu]
 	default:
@@ -55,8 +53,6 @@ func (d *DefaultHandler) pickCartHandler(cart domain.Cart) interfaces.Handler {
 	switch cart.State {
 	case domain.CartStateAdding:
 		return d.handlers[commands.AddItem]
-	case domain.CartStateEditingItemName:
-		return d.handlers[commands.EditItem]
 	default:
 		return nil
 	}

@@ -9,13 +9,9 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/add"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/check"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/delete_item"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item/increment"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/edit_item/rename"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/items/uncheck"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/open_clear_menu"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/purge_cart"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/cart/settings"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/start"
 )
 
@@ -29,18 +25,13 @@ func newHandlerStore(srv service.Service) *HandlerStore {
 			commands.Start: start.New(srv),
 			commands.Cart:  cart.New(srv),
 
-			commands.AddItem:            add.New(srv),
-			commands.EditItem:           edit_item.New(srv),
-			commands.RenameItem:         rename.New(srv),
-			commands.IncrementItemCount: increment.New(),
-			commands.DeleteItem:         delete_item.New(srv),
+			commands.AddItem:    add.New(srv),
+			commands.DeleteItem: delete_item.New(srv),
 
 			commands.CheckItem:   check.New(srv),
 			commands.UncheckItem: uncheck.New(srv),
 
 			commands.ClearMenu: open_clear_menu.New(srv),
-
-			commands.CartSetting: settings.New(srv),
 
 			commands.Purge: purge_cart.New(srv),
 		},

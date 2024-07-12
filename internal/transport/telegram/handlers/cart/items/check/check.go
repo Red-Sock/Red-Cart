@@ -1,6 +1,8 @@
 package check
 
 import (
+	"strings"
+
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
@@ -29,12 +31,14 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage("expect to have 2 argements as input - cart id and item name"))
 	}
 
+	itemKey := strings.Join(in.Args, " ")
+
 	userCart, err := h.cartService.GetCartByChatId(in.Ctx, in.Chat.ID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	err = h.itemService.Check(in.Ctx, userCart.Cart.ID, in.Args[0])
+	err = h.itemService.Check(in.Ctx, userCart.Cart.ID, itemKey)
 	if err != nil {
 		return errors.Wrap(err)
 	}

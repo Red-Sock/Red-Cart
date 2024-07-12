@@ -1,10 +1,9 @@
 package scripts
 
 const (
-	OpenSetting PhraseKey = "Setting"
-	CreateCart  PhraseKey = "CreateCart"
-	Clear       PhraseKey = "Clear"
-	PurgeCart   PhraseKey = "Purge"
+	CreateCart PhraseKey = "CreateCart"
+	Clear      PhraseKey = "Clear"
+	PurgeCart  PhraseKey = "Purge"
 
 	ClickToRemove PhraseKey = "ClickToRemove"
 	Cart          PhraseKey = "Cart"

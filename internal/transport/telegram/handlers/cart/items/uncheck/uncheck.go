@@ -1,6 +1,8 @@
 package uncheck
 
 import (
+	"strings"
+
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
@@ -34,7 +36,9 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return errors.Wrap(err)
 	}
 
-	err = h.itemService.Uncheck(in.Ctx, userCart.Cart.ID, in.Args[0])
+	itemKey := strings.Join(in.Args, " ")
+
+	err = h.itemService.Uncheck(in.Ctx, userCart.Cart.ID, itemKey)
 	if err != nil {
 		return errors.Wrap(err)
 	}

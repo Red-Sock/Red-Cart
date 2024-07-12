@@ -2,7 +2,6 @@ package scripts
 
 var (
 	en = map[PhraseKey]string{
-		OpenSetting: "Cart settings " + SettingIcon,
 		CreateCart:  "Create cart " + CartIcon,
 		Clear:       "Remove items / purge cart " + BinIcon,
 		PurgeCart:   "Purge cart" + PurgeIcon,

@@ -23,8 +23,6 @@ func (d *DefaultHandler) basicInputs(msgIn *model.MessageIn, userCart domain.Use
 	}
 
 	switch instruction {
-	case scripts.OpenSetting:
-		return message.CartSettings(msgIn.Ctx, userCart)
 	case scripts.Clear:
 		return message.ClearCart(msgIn.Ctx, userCart)
 	default:
