@@ -5,4 +5,5 @@ package config
 const (
 	ResourcePostgres = "postgres"
 	ResourceTelegram = "telegram"
+	ResourceSqlite   = "sqlite"
 )

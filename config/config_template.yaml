@@ -11,6 +11,8 @@ data_sources:
       name: red_cart
       ssl_mode: ""
     - resource_name: telegram
-      api_key: 6439880267:AAFvR36Gq36FiPnzsocw9ctmbAYrGq_Yzjc
+      api_key: 6439880267:AAGNo7PbxdJHeb5S5UXP9K4HSAeouFX9TWk
+    - resource_name: sqlite
+      path: ./data/sqlite/Red-Cart.db
 server: []
 environment: []
