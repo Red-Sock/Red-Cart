@@ -50,7 +50,8 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	_, err = message.Delete(msgIn.Ctx, out, cart)
+	msg := message.Delete(msgIn.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err, "error assembling delete message")
 	}

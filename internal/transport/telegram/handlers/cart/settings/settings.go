@@ -27,7 +27,8 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	msg, err := message.CartSettings(in.Ctx, out, cart)
+	msg := message.CartSettings(in.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err, "error assembling cart settings message")
 	}

@@ -7,17 +7,15 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
-	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-// nolint
-func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.MessageOut, error) {
+func Delete(ctx context.Context, cart domain.UserCart) tgapi.MessageOut {
 	if len(cart.Cart.Items) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	cartIdStr := strconv.FormatUint(uint64(cart.Cart.ID), 10)
@@ -38,25 +36,16 @@ func Delete(ctx context.Context, out tgapi.Chat, cart domain.UserCart) (tgapi.Me
 	text := scripts.Get(ctx, scripts.ClickToRemove)
 
 	if cart.Cart.MessageId != nil {
-		msg := &response.EditMessage{
+		return &response.EditMessage{
 			ChatId:    cart.Cart.ChatId,
 			Text:      text,
 			MessageId: *cart.Cart.MessageId,
 			Keys:      &keys,
 		}
-
-		err := out.SendMessage(msg)
-		if err == nil {
-			return msg, errors.Wrap(err, "error sending message")
-		}
 	}
 
 	msg := response.NewMessage(text)
 	msg.AddKeyboard(keys)
-	err := out.SendMessage(msg)
-	if err != nil {
-		return nil, errors.Wrap(err, "error sending message")
-	}
 
-	return msg, nil
+	return msg
 }

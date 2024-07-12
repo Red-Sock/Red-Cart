@@ -1,4 +1,4 @@
-package handlers
+package default_handler
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
@@ -34,6 +35,8 @@ func NewDefaultCommandHandler(
 }
 
 func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	defer helpers.DeleteIncomingMessage(msgIn, out)
+
 	if len(msgIn.Args) == 0 || msgIn.Command != "" {
 		err := out.SendMessage(response.NewMessage("unknown functionality " + msgIn.Command))
 		if err != nil {
@@ -43,29 +46,15 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	err := out.SendMessage(&response.DeleteMessage{
-		ChatId:    msgIn.Chat.ID,
-		MessageId: int64(msgIn.MessageID),
-	})
+	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
-	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
-	if err != nil {
-		err = out.SendMessage(response.NewMessage(err.Error()))
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		return nil
-	}
-
 	ok, err := d.basicInputs(msgIn, userCart, out)
 	if err != nil {
-		return err
+		return errors.Wrap(err)
 	}
-
 	if ok {
 		return nil
 	}
@@ -74,7 +63,6 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	if err != nil {
 		return err
 	}
-
 	if ok {
 		return nil
 	}

@@ -7,7 +7,6 @@ import (
 	"github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
-	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -40,7 +39,7 @@ func OpenCart(ctx context.Context, userCart domain.UserCart) interfaces.MessageO
 	}
 }
 
-func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
+func CartSettings(ctx context.Context, cart domain.UserCart) interfaces.MessageOut {
 	var text string
 	if len(cart.Cart.Items) == 0 {
 		text = scripts.Get(ctx, scripts.CartIsEmpty)
@@ -63,16 +62,11 @@ func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCar
 	}
 
 	if cart.Cart.MessageId != nil {
-		out := &response.EditMessage{
+		return &response.EditMessage{
 			ChatId:    cart.Cart.ChatId,
 			MessageId: *cart.Cart.MessageId,
 			Text:      text,
 			Keys:      keys,
-		}
-		err := chat.SendMessage(out)
-
-		if err == nil {
-			return out, nil
 		}
 	}
 
@@ -82,12 +76,7 @@ func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCar
 		Keys:   keys,
 	}
 
-	err := chat.SendMessage(out)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-
-	return out, nil
+	return out
 }
 
 func emptyCart(ctx context.Context, cart domain.UserCart) interfaces.MessageOut {

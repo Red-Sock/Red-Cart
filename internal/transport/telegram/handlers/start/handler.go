@@ -3,6 +3,7 @@ package start
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
+	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 	errors "github.com/Red-Sock/trace-errors"
 	"github.com/sirupsen/logrus"
@@ -10,7 +11,9 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/parsing"
+	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
 type Handler struct {
@@ -26,15 +29,7 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 }
 
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
-	defer func() {
-		err := out.SendMessage(&response.DeleteMessage{
-			ChatId:    msgIn.Chat.ID,
-			MessageId: int64(msgIn.MessageID),
-		})
-		if err != nil {
-			logrus.Errorf("error sending delete message command: %s", err)
-		}
-	}()
+	defer helpers.DeleteIncomingMessage(msgIn, out)
 
 	newUser := parsing.ToDomainUser(msgIn)
 
@@ -43,9 +38,14 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return errors.Wrap(err)
 	}
 
-	h.removePreviousMessage(&startMessage, out)
-
+	if startMessage.Cart.MessageId != nil {
+		h.removePreviousMessage(&startMessage, out)
+	}
 	msg := response.NewMessage(startMessage.Msg)
+
+	msg.Keys = &keyboard.Keyboard{}
+	msg.Keys.AddButton(scripts.Get(msgIn.Ctx, scripts.Cart), commands.Cart)
+
 	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err)
@@ -55,10 +55,6 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 }
 
 func (h *Handler) removePreviousMessage(startMessage *domain.StartMessagePayload, out tgapi.Chat) {
-	if startMessage.Cart.MessageId == nil {
-		return
-	}
-
 	err := out.SendMessage(&response.DeleteMessage{
 		ChatId:    startMessage.Cart.ChatId,
 		MessageId: *startMessage.Cart.MessageId,

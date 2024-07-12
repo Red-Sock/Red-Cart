@@ -69,7 +69,8 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	}
 
 	if len(cart.Cart.Items) != 0 {
-		_, err = message.Delete(msgIn.Ctx, out, cart)
+		msg := message.Delete(msgIn.Ctx, cart)
+		err = out.SendMessage(msg)
 		if err != nil {
 			return errors.Wrap(err)
 		}

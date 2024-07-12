@@ -1,4 +1,4 @@
-package handlers
+package default_handler
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
@@ -17,28 +17,21 @@ func (d *DefaultHandler) basicInputs(msgIn *model.MessageIn, userCart domain.Use
 		return false, nil
 	}
 
-	_ = out.SendMessage(&response.DeleteMessage{
-		ChatId:    msgIn.Chat.ID,
-		MessageId: int64(msgIn.MessageID),
-	})
 	var msg tgapi.MessageOut
 	var err error
+
 	switch instruction {
 	case scripts.OpenSetting:
-		msg, err = message.CartSettings(msgIn.Ctx, out, userCart)
+		msg = message.CartSettings(msgIn.Ctx, userCart)
 	case scripts.Clear:
-		msg, err = message.Delete(msgIn.Ctx, out, userCart)
+		msg = message.Delete(msgIn.Ctx, userCart)
 	default:
-		err = out.SendMessage(response.NewMessage(string("cannot handle " + instruction)))
-		if err != nil {
-			return false, errors.Wrap(err)
-		}
-
-		return true, nil
+		msg = response.NewMessage(string("cannot handle " + instruction))
 	}
 
+	err = out.SendMessage(msg)
 	if err != nil {
-		return true, errors.Wrap(err, "error assembling message")
+		return false, errors.Wrap(err, "error assembling message")
 	}
 
 	if msg == nil {
@@ -54,12 +47,7 @@ func (d *DefaultHandler) basicInputs(msgIn *model.MessageIn, userCart domain.Use
 
 	err = d.cartService.SyncCartMessage(msgIn.Ctx, userCart, msg)
 	if err != nil {
-		err = out.SendMessage(response.NewMessage(err.Error()))
-		if err != nil {
-			return false, errors.Wrap(err)
-		}
-
-		return true, nil
+		return true, errors.Wrap(err)
 	}
 
 	return true, nil

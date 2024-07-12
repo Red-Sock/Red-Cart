@@ -1,8 +1,7 @@
 package commands
 
 const (
-	Version = "/version"
-	Start   = "/start"
+	Start = "/start"
 
 	Cart        = "/cart"
 	CartSetting = "/cart_setting"
