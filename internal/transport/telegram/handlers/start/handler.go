@@ -3,7 +3,6 @@ package start
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
-	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
 	errors "github.com/Red-Sock/trace-errors"
 	"github.com/sirupsen/logrus"
@@ -12,8 +11,8 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/parsing"
-	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
 type Handler struct {
@@ -41,16 +40,23 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	if startMessage.Cart.MessageId != nil {
 		h.removePreviousMessage(&startMessage, out)
 	}
-	msg := response.NewMessage(startMessage.Msg)
+	welcomeMsg := response.NewMessage(startMessage.Msg)
 
-	msg.Keys = &keyboard.Keyboard{}
-	msg.Keys.AddButton(scripts.Get(msgIn.Ctx, scripts.Cart), commands.Cart)
-
-	err = out.SendMessage(msg)
+	err = out.SendMessage(welcomeMsg)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
+	cartMsg := message.OpenCart(msgIn.Ctx, startMessage.UserCart)
+	err = out.SendMessage(cartMsg)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	err = h.cartSrv.SyncCartMessage(msgIn.Ctx, startMessage.UserCart, cartMsg)
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	return nil
 }
 
