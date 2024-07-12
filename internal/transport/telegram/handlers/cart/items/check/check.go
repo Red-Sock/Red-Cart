@@ -6,6 +6,7 @@ import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/response"
+	errors "github.com/Red-Sock/trace-errors"
 
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
@@ -37,22 +38,23 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 
 	err = h.itemService.Check(in.Ctx, cartId, in.Args[1])
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	userCart, err := h.cartService.GetCartById(in.Ctx, cartId)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, userCart)
+	msg := message.OpenCart(in.Ctx, userCart)
+	err = out.SendMessage(msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, userCart, msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	return nil

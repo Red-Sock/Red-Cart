@@ -59,7 +59,8 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 			MessageId: *cart.Cart.MessageId,
 		})
 
-		_, err = message.OpenCart(msgIn.Ctx, out, cart)
+		msg := message.OpenCart(msgIn.Ctx, cart)
+		err = out.SendMessage(msg)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -76,7 +77,8 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	_, err = message.OpenCart(msgIn.Ctx, out, cart)
+	msg := message.OpenCart(msgIn.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err)
 	}

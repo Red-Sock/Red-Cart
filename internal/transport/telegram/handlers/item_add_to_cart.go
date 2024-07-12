@@ -30,12 +30,8 @@ func (d *DefaultHandler) addItem(msgIn *model.MessageIn, out tgapi.Chat, userCar
 		return nil
 	}
 
-	_ = out.SendMessage(&response.DeleteMessage{
-		ChatId:    msgIn.Chat.ID,
-		MessageId: int64(msgIn.MessageID),
-	})
-
-	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
+	msg := message.OpenCart(msgIn.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err, "error assembling open cart message")
 	}

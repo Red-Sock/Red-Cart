@@ -43,6 +43,14 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
+	err := out.SendMessage(&response.DeleteMessage{
+		ChatId:    msgIn.Chat.ID,
+		MessageId: int64(msgIn.MessageID),
+	})
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
 	if err != nil {
 		err = out.SendMessage(response.NewMessage(err.Error()))
@@ -75,12 +83,21 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 }
 
 func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
+	var ok bool
+	var err error
 	switch userCart.Cart.State {
 	case domain.CartStateAdding:
-		return true, d.addItem(in, out, userCart)
+		ok, err = true, d.addItem(in, out, userCart)
 	case domain.CartStateEditingItemName:
-		return true, d.editItemName(in, out, userCart)
+		ok, err = true, d.editItemName(in, out, userCart)
+	}
+	if err != nil {
+		return false, errors.Wrap(err)
 	}
 
-	return false, nil
+	if !ok {
+		return false, nil
+	}
+
+	return true, nil
 }

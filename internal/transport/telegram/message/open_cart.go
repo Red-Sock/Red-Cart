@@ -14,77 +14,32 @@ import (
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
-// nolint
-func OpenCart(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
+func OpenCart(ctx context.Context, userCart domain.UserCart) interfaces.MessageOut {
 	var text string
 
-	//nolint
-	if len(cart.Cart.Items) == 0 {
-		text = scripts.Get(ctx, scripts.CartIsEmpty)
-
-		var msg interfaces.MessageOut
-		if cart.Cart.MessageId != nil {
-			msg = &response.EditMessage{
-				ChatId:    cart.Cart.ChatId,
-				Text:      text,
-				MessageId: *cart.Cart.MessageId,
-			}
-		} else {
-			msg = response.NewMessage(text)
-		}
-		err := chat.SendMessage(msg)
-		if err != nil {
-			return nil, errors.Wrap(err, "error sending cart message")
-		}
-
-		return msg, nil
+	if len(userCart.Cart.Items) == 0 {
+		return emptyCart(ctx, userCart)
 	}
 
 	text = scripts.Get(ctx, scripts.Cart)
+	keys := cartKeys(userCart.Cart)
 
-	var keys *keyboard.Keyboard
-	cartId := strconv.Itoa(int(cart.Cart.ID))
-	if len(cart.Cart.Items) != 0 {
-		keys = &keyboard.Keyboard{}
-		keys.Columns = 1
-
-		items, itemKeys := itemList(cart.Cart.Items)
-		for i, itemName := range items {
-			if !cart.Cart.Items[i].Checked {
-				keys.AddButton(itemName, commands.Check+" "+cartId+" "+itemKeys[i])
-			} else {
-				keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+itemKeys[i])
-			}
-		}
-	}
-
-	if cart.Cart.MessageId != nil {
-		out := &response.EditMessage{
-			ChatId:    cart.Cart.ChatId,
-			MessageId: *cart.Cart.MessageId,
+	if userCart.Cart.MessageId != nil {
+		return &response.EditMessage{
+			ChatId:    userCart.Cart.ChatId,
+			MessageId: *userCart.Cart.MessageId,
 			Text:      text,
 			Keys:      keys,
 		}
-		err := chat.SendMessage(out)
-		if err == nil {
-			return out, nil
-		}
 	}
 
-	out := &response.MessageOut{
-		ChatId: cart.User.Id,
+	return &response.MessageOut{
+		ChatId: userCart.User.Id,
 		Text:   text,
 		Keys:   keys,
 	}
-	err := chat.SendMessage(out)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-
-	return out, nil
 }
 
-// nolint
 func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCart) (interfaces.MessageOut, error) {
 	var text string
 	if len(cart.Cart.Items) == 0 {
@@ -133,4 +88,41 @@ func CartSettings(ctx context.Context, chat interfaces.Chat, cart domain.UserCar
 	}
 
 	return out, nil
+}
+
+func emptyCart(ctx context.Context, cart domain.UserCart) interfaces.MessageOut {
+	text := scripts.Get(ctx, scripts.CartIsEmpty)
+
+	var msg interfaces.MessageOut
+	if cart.Cart.MessageId != nil {
+		msg = &response.EditMessage{
+			ChatId:    cart.Cart.ChatId,
+			Text:      text,
+			MessageId: *cart.Cart.MessageId,
+		}
+	} else {
+		msg = response.NewMessage(text)
+	}
+
+	return msg
+}
+
+func cartKeys(cart domain.Cart) (keys *keyboard.Keyboard) {
+	cartId := strconv.Itoa(int(cart.ID))
+	if len(cart.Items) == 0 {
+		return nil
+	}
+	keys = &keyboard.Keyboard{}
+	keys.Columns = 1
+
+	items, itemKeys := itemList(cart.Items)
+	for i, itemName := range items {
+		if !cart.Items[i].Checked {
+			keys.AddButton(itemName, commands.Check+" "+cartId+" "+itemKeys[i])
+		} else {
+			keys.AddButton(itemName+" "+scripts.CheckedIcon, commands.Uncheck+" "+cartId+" "+itemKeys[i])
+		}
+	}
+
+	return keys
 }

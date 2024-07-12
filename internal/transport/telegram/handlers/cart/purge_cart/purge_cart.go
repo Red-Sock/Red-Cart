@@ -31,27 +31,28 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 
 	cartId, err := strconv.ParseInt(msgIn.Args[0], 10, 64)
 	if err != nil {
-		return out.SendMessage(response.NewMessage("expected for cart id to be integer: " + err.Error()))
+		return errors.Wrap(err)
 	}
 
 	err = h.cartService.PurgeCart(msgIn.Ctx, cartId)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	cart, err := h.cartService.GetCartById(msgIn.Ctx, cartId)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
-	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
+	msg := message.OpenCart(msgIn.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 
 	err = h.cartService.SyncCartMessage(msgIn.Ctx, cart, msg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	if !msgIn.IsCallback {

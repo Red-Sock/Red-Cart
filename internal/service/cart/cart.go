@@ -72,7 +72,7 @@ func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, us
 		return domain.UserCart{}, errors.Wrap(err, "error getting actual cart items")
 	}
 
-	return *cart, errors.Wrap(err)
+	return *cart, nil
 }
 
 func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error) {

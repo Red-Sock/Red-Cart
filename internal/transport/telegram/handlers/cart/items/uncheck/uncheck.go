@@ -46,7 +46,8 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, userCart)
+	msg := message.OpenCart(in.Ctx, userCart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}

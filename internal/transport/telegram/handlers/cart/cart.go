@@ -36,19 +36,16 @@ func (h *Handler) Handle(in *model.MessageIn, out tgapi.Chat) error {
 		})
 	}
 
-	msg, err := message.OpenCart(in.Ctx, out, userCart)
+	msg := message.OpenCart(in.Ctx, userCart)
+
+	err = out.SendMessage(msg)
 	if err != nil {
-		return errors.Wrap(err, "error assembling open cart message")
+		return errors.Wrap(err)
 	}
 
 	err = h.cartService.SyncCartMessage(in.Ctx, userCart, msg)
 	if err != nil {
-		err = out.SendMessage(response.NewMessage(err.Error()))
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		return nil
+		return errors.Wrap(err)
 	}
 
 	return nil

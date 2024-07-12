@@ -68,7 +68,8 @@ func (d *DefaultHandler) editItemName(msgIn *model.MessageIn, out tgapi.Chat, ca
 		return nil
 	}
 
-	msg, err := message.OpenCart(msgIn.Ctx, out, cart)
+	msg := message.OpenCart(msgIn.Ctx, cart)
+	err = out.SendMessage(msg)
 	if err != nil {
 		return errors.Wrap(err)
 	}

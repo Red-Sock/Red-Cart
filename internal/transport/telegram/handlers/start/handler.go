@@ -1,20 +1,15 @@
 package start
 
 import (
-	"strconv"
-
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
-	"github.com/Red-Sock/go_tg/model/keyboard"
 	"github.com/Red-Sock/go_tg/model/response"
-	errors "github.com/Red-Sock/trace-errors"
 	"github.com/sirupsen/logrus"
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
-	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
-	"github.com/Red-Sock/Red-Cart/scripts"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/parsing"
 )
 
 type Handler struct {
@@ -30,38 +25,16 @@ func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
 }
 
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
-	newUser := domain.User{
-		Id:        msgIn.From.ID,
-		UserName:  msgIn.From.UserName,
-		FirstName: msgIn.From.FirstName,
-		LastName:  msgIn.From.LastName,
-	}
+	newUser := parsing.ToDomainUser(msgIn)
 
 	startMessage, err := h.userSrv.Start(msgIn.Ctx, newUser, msgIn.Chat.ID)
 	if err != nil {
 		return out.SendMessage(response.NewMessage(err.Error()))
 	}
 
-	if startMessage.Cart.MessageId != nil {
-		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    startMessage.Cart.ChatId,
-			MessageId: *startMessage.Cart.MessageId,
-		})
+	h.removePreviousMessage(&startMessage, out)
 
-		startMessage.Cart.MessageId = nil
-	}
-
-	h.startMessage(msgIn, startMessage, out)
-
-	cartMsg, err := message.OpenCart(msgIn.Ctx, out, startMessage.UserCart)
-	if err != nil {
-		return errors.Wrap(err, "open cart error")
-	}
-
-	err = h.cartSrv.SyncCartMessage(msgIn.Ctx, startMessage.UserCart, cartMsg)
-	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
-	}
+	h.sendStartMessage(msgIn, startMessage, out)
 
 	return out.SendMessage(&response.DeleteMessage{
 		ChatId:    msgIn.Chat.ID,
@@ -69,21 +42,43 @@ func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 	})
 }
 
-func (h *Handler) startMessage(in *model.MessageIn, payload domain.StartMessagePayload, out tgapi.Chat) {
-	cartId := strconv.Itoa(int(payload.Cart.ID))
+func (h *Handler) sendStartMessage(in *model.MessageIn, payload domain.StartMessagePayload, out tgapi.Chat) {
+	//cartId := strconv.Itoa(int(payload.Cart.ID))
 
 	msg := response.NewMessage(payload.Msg)
 
-	keyboardReply := keyboard.Keyboard{IsReplyKeyboard: true}
-	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.OpenSetting), commands.CartSetting+" "+cartId)
-	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.ClearMenu+" "+cartId)
-
-	msg.AddKeyboard(keyboardReply)
+	//keyboardReply := keyboard.Keyboard{}
+	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Cart), commands.Cart)
+	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.OpenSetting), commands.CartSetting+" "+cartId)
+	//keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.ClearMenu+" "+cartId)
+	//
+	//msg.AddKeyboard(keyboardReply)
 
 	err := out.SendMessage(msg)
 	if err != nil {
 		logrus.Error(err.Error())
 	}
+}
+
+func (h *Handler) removePreviousMessage(startMessage *domain.StartMessagePayload, out tgapi.Chat) {
+	if startMessage.Cart.MessageId == nil {
+		return
+	}
+
+	err := out.SendMessage(&response.DeleteMessage{
+		ChatId:    startMessage.Cart.ChatId,
+		MessageId: *startMessage.Cart.MessageId,
+	})
+	if err != nil {
+		logrus.Errorf("error deleting previous message (chatID = %d, messageId = %d, %s",
+			startMessage.Cart.ChatId,
+			*startMessage.Cart.MessageId,
+			err.Error())
+		return
+	}
+
+	startMessage.Cart.MessageId = nil
+
 }
 
 func (h *Handler) GetDescription() string {
