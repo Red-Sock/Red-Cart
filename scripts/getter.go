@@ -29,9 +29,8 @@ func GetInstructions() map[string]map[string]PhraseKey {
 
 	for lng, src := range scripts {
 		m[string(lng)] = map[string]PhraseKey{
-			src[CreateCart]:  CreateCart,
-			src[OpenSetting]: OpenSetting,
-			src[Clear]:       Clear,
+			src[CreateCartAction]: CreateCartAction,
+			src[OpenClearMenu]:    OpenClearMenu,
 		}
 	}
 

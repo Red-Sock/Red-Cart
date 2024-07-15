@@ -29,7 +29,7 @@ func (u *Service) GetCartByChat(ctx context.Context, userID int64) (domain.UserC
 		return domain.UserCart{}, errors.New("no such cart")
 	}
 
-	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
+	userCart.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.Id)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err)
 	}
@@ -44,47 +44,30 @@ func New(uD domain.UserRepo, cartData domain.CartRepo) *Service {
 	}
 }
 
-func (u *Service) Start(ctx context.Context, newUser domain.User, _ int64,
-) (message domain.StartMessagePayload, err error) {
-	user, err := u.userData.Get(ctx, newUser.ID)
+func (u *Service) Start(ctx context.Context, userIn domain.User, chatId int64) (domain.StartMessagePayload, error) {
+	message, err := u.welcomeMessage(ctx, userIn)
 	if err != nil {
-		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error creating new user")
+		return message, errors.Wrap(err)
 	}
 
-	if user != nil {
-		message.Msg = scripts.Get(ctx, scripts.WelcomeBack)
-		message.User = *user
-	} else {
-		err = u.userData.Upsert(ctx, newUser)
-		if err != nil {
-			return domain.StartMessagePayload{
-				Msg: domain.DbErrorMsg,
-			}, errors.Wrap(err, "error updating user's profile")
-		}
-		message.User = newUser
-		message.Msg = scripts.Get(ctx, scripts.Welcome)
-	}
-
-	userCart, err := u.cartData.GetByOwnerId(ctx, newUser.ID)
+	userCart, err := u.cartData.GetByOwnerId(ctx, userIn.Id)
 	if err != nil {
-		return domain.StartMessagePayload{
-			Msg: domain.DbErrorMsg,
-		}, errors.Wrap(err, "error getting cart by owner")
+		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error getting cart by owner")
 	}
 
 	if userCart != nil {
 		message.Cart = userCart.Cart
-		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.ID)
+		message.Cart.Items, err = u.cartData.ListCartItems(ctx, userCart.Cart.Id)
 	} else {
-		message.Cart.ID, err = u.createCartForUser(ctx, newUser)
+		message.Cart, err = u.createCartForUser(ctx, userIn, chatId)
 	}
 	if err != nil {
 		return domain.StartMessagePayload{
 			Msg: domain.DbErrorMsg,
-		}, err
+		}, errors.Wrap(err)
 	}
 
-	message.Msg += fmt.Sprintf(scripts.Get(ctx, scripts.WelcomeMessagePattern), message.Cart.ID)
+	message.Msg += fmt.Sprintf(scripts.Get(ctx, scripts.WelcomeMessagePattern), message.Cart.Id)
 
 	return message, nil
 }
@@ -107,16 +90,16 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 		return domain.UserCart{}, errors.Wrap(err)
 	}
 
-	if cart.Cart.ID == 0 {
+	if cart.Cart.Id == 0 {
 		return domain.UserCart{}, errors.Wrap(ErrNoDefaultCart)
 	}
 
-	err = u.cartData.AddCartItems(ctx, items, cart.Cart.ID, userID)
+	err = u.cartData.AddCartItems(ctx, items, cart.Cart.Id, userID)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err)
 	}
 
-	cart.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.Cart.ID)
+	cart.Cart.Items, err = u.cartData.ListCartItems(ctx, cart.Cart.Id)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err, "error getting cartItems")
 	}
@@ -124,21 +107,52 @@ func (u *Service) AddToDefaultCart(ctx context.Context, items []domain.Item, use
 	return cart, nil
 }
 
-func (u *Service) createCartForUser(ctx context.Context, user domain.User) (int64, error) {
-	cartID, err := u.cartData.Create(ctx, user.ID)
+func (u *Service) createCartForUser(ctx context.Context, user domain.User, chatId int64) (domain.Cart, error) {
+	cartId, err := u.cartData.Create(ctx, user.Id)
 	if err != nil {
-		return 0, errors.Wrap(err, "error creating cart")
+		return domain.Cart{}, errors.Wrap(err, "error creating cart")
 	}
 
-	err = u.cartData.LinkUserToCart(ctx, user.ID, cartID)
+	err = u.cartData.LinkUserToCart(ctx, user.Id, cartId, chatId)
 	if err != nil {
-		return 0, errors.Wrap(err, "error linking cart")
+		return domain.Cart{}, errors.Wrap(err, "error linking cart")
 	}
 
-	err = u.cartData.SetDefaultCart(ctx, user.ID, cartID)
+	err = u.cartData.SetDefaultCart(ctx, user.Id, cartId)
 	if err != nil {
-		return 0, errors.Wrap(err, "error setting default cart")
+		return domain.Cart{}, errors.Wrap(err, "error setting default cart")
 	}
 
-	return cartID, nil
+	cart, err := u.cartData.GetCartByID(ctx, cartId)
+	if err != nil {
+		return domain.Cart{}, errors.Wrap(err)
+	}
+
+	return cart.Cart, nil
+}
+
+func (u *Service) welcomeMessage(ctx context.Context, userIn domain.User) (domain.StartMessagePayload, error) {
+	message := domain.StartMessagePayload{}
+
+	dbUser, err := u.userData.Get(ctx, userIn.Id)
+	if err != nil {
+		return domain.StartMessagePayload{Msg: domain.DbErrorMsg}, errors.Wrap(err, "error creating new dbUser")
+	}
+
+	if dbUser != nil {
+		message.Msg = scripts.Get(ctx, scripts.WelcomeBack)
+		message.User = *dbUser
+		return message, nil
+	}
+
+	err = u.userData.Upsert(ctx, userIn)
+	if err != nil {
+		return domain.StartMessagePayload{
+			Msg: domain.DbErrorMsg,
+		}, errors.Wrap(err, "error updating user's profile")
+	}
+	message.User = userIn
+	message.Msg = scripts.Get(ctx, scripts.Welcome)
+
+	return message, nil
 }

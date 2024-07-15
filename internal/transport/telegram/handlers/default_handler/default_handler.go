@@ -1,4 +1,4 @@
-package handlers
+package default_handler
 
 import (
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
@@ -18,22 +19,28 @@ type DefaultHandler struct {
 
 	// lang ->> instruction name on native language ->> instruction
 	expectedInstructions map[string]map[string]scripts.PhraseKey
+
+	handlers map[string]tgapi.CommandHandler
 }
 
 func NewDefaultCommandHandler(
-	us service.UserService,
-	cs service.CartService,
-	is service.ItemService,
+	srv service.Service,
+	handlers map[string]tgapi.CommandHandler,
 ) *DefaultHandler {
 	return &DefaultHandler{
-		userService:          us,
-		cartService:          cs,
-		itemService:          is,
+		userService: srv.User(),
+		cartService: srv.Cart(),
+		itemService: srv.Item(),
+
 		expectedInstructions: scripts.GetInstructions(),
+
+		handlers: handlers,
 	}
 }
 
 func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
+	defer helpers.DeleteIncomingMessage(msgIn, out)
+
 	if len(msgIn.Args) == 0 || msgIn.Command != "" {
 		err := out.SendMessage(response.NewMessage("unknown functionality " + msgIn.Command))
 		if err != nil {
@@ -43,44 +50,30 @@ func (d *DefaultHandler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
 		return nil
 	}
 
-	userCart, err := d.cartService.GetCartByChatId(msgIn.Ctx, msgIn.Chat.ID)
+	handler, err := d.pickHandler(msgIn)
 	if err != nil {
-		err = out.SendMessage(response.NewMessage(err.Error()))
-		if err != nil {
-			return errors.Wrap(err)
-		}
+		return errors.Wrap(err)
+	}
 
+	if handler == nil {
 		return nil
 	}
 
-	ok, err := d.basicInputs(msgIn, userCart, out)
+	err = handler.Handle(msgIn, out)
 	if err != nil {
-		return err
-	}
-
-	if ok {
-		return nil
-	}
-
-	ok, err = d.cartInputs(msgIn, userCart, out)
-	if err != nil {
-		return err
-	}
-
-	if ok {
-		return nil
+		return errors.Wrap(err)
 	}
 
 	return nil
 }
 
-func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart, out tgapi.Chat) (bool, error) {
+func (d *DefaultHandler) cartInputs(in *model.MessageIn, userCart domain.UserCart) (tgapi.MessageOut, error) {
 	switch userCart.Cart.State {
 	case domain.CartStateAdding:
-		return true, d.addItem(in, out, userCart)
+		return d.addItem(in, userCart)
 	case domain.CartStateEditingItemName:
-		return true, d.editItemName(in, out, userCart)
+		return d.editItemName(in, userCart)
+	default:
+		return nil, nil
 	}
-
-	return false, nil
 }

@@ -12,8 +12,8 @@ const (
 type CartRepo interface {
 	Create(ctx context.Context, idOwner int64) (id int64, err error)
 
-	SetDefaultCart(ctx context.Context, userID int64, cartID int64) error
-	LinkUserToCart(ctx context.Context, userID int64, cartID int64) error
+	SetDefaultCart(ctx context.Context, userID, cartID int64) error
+	LinkUserToCart(ctx context.Context, userID, cartID, chatId int64) error
 
 	ListCartItems(ctx context.Context, cartId int64) ([]Item, error)
 
@@ -41,7 +41,7 @@ type CartFilter struct {
 type cartState string
 
 type Cart struct {
-	ID    int64
+	Id    int64
 	Items []Item
 
 	ChatId    int64

@@ -1,19 +1,15 @@
 package commands
 
 const (
-	Version = "/version"
-	Start   = "/start"
+	Start = "/start"
 
-	Cart        = "/cart"
-	CartSetting = "/cart_setting"
+	Cart = "/cart"
 
-	Edit      = "/edit"
-	Check     = "/check"
-	Uncheck   = "/uncheck"
-	Rename    = "/rename"
-	Increment = "/increment"
+	AddItem     = "item"
+	CheckItem   = "/check"
+	UncheckItem = "/uncheck"
+	DeleteItem  = "/delete_item"
 
-	ClearMenu  = "/clear"
-	DeleteItem = "/delete_item"
-	Purge      = "/purge"
+	ClearMenu = "/clear"
+	Purge     = "/purge"
 )

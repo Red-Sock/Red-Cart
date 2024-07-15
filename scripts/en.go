@@ -1,25 +1,25 @@
 package scripts
 
+import (
+	"github.com/Red-Sock/Red-Cart/scripts/icons"
+)
+
 var (
 	en = map[PhraseKey]string{
-		OpenSetting: "Cart settings " + SettingIcon,
-		CreateCart:  "Create cart " + CartIcon,
-		Clear:       "Remove items / purge cart " + BinIcon,
-		PurgeCart:   "Purge cart" + PurgeIcon,
-		CartIsEmpty: "Cart is empty",
+		CreateCartAction: "Create cart " + icons.CartIcon,
+		OpenClearMenu:    "Remove items / purge cart " + icons.BinIcon,
+		PurgeCartAction:  "Purge cart" + icons.PurgeIcon,
+		CartIsEmpty:      "Cart is empty. Just in product names in order to add it to cart",
 
-		ClickToRemove: "Click to remove",
-		Cart:          "Cart " + CartIcon,
+		Cart: "Cart " + icons.CartIcon,
 
-		Rename: "Rename  " + EditIcon,
+		Rename: "Rename  " + icons.EditIcon,
 
 		Welcome:     "Welcome!",
 		WelcomeBack: "Welcome back!",
 
-		WelcomeMessagePattern: CartIcon + `
+		WelcomeMessagePattern: icons.CartIcon + `
 Default cart: %d
-
-Just in product names in order to add it to cart
 `,
 	}
 )
