@@ -1,8 +1,6 @@
 package start
 
 import (
-	"strconv"
-
 	tgapi "github.com/Red-Sock/go_tg/interfaces"
 	"github.com/Red-Sock/go_tg/model"
 	"github.com/Red-Sock/go_tg/model/keyboard"
@@ -13,7 +11,9 @@ import (
 	"github.com/Red-Sock/Red-Cart/internal/domain"
 	"github.com/Red-Sock/Red-Cart/internal/interfaces/service"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/commands"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/handlers/helpers"
 	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/message"
+	"github.com/Red-Sock/Red-Cart/internal/transport/telegram/parsing"
 	"github.com/Red-Sock/Red-Cart/scripts"
 )
 
@@ -22,68 +22,66 @@ type Handler struct {
 	cartSrv service.CartService
 }
 
-func New(userSrv service.UserService, cartSrv service.CartService) *Handler {
+func New(srv service.Service) *Handler {
 	return &Handler{
-		userSrv: userSrv,
-		cartSrv: cartSrv,
+		userSrv: srv.User(),
+		cartSrv: srv.Cart(),
 	}
 }
 
 func (h *Handler) Handle(msgIn *model.MessageIn, out tgapi.Chat) error {
-	newUser := domain.User{
-		ID:        msgIn.From.ID,
-		UserName:  msgIn.From.UserName,
-		FirstName: msgIn.From.FirstName,
-		LastName:  msgIn.From.LastName,
-	}
+	defer helpers.DeleteIncomingMessage(msgIn, out)
+
+	newUser := parsing.ToDomainUser(msgIn)
 
 	startMessage, err := h.userSrv.Start(msgIn.Ctx, newUser, msgIn.Chat.ID)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
 
 	if startMessage.Cart.MessageId != nil {
-		_ = out.SendMessage(&response.DeleteMessage{
-			ChatId:    startMessage.Cart.ChatId,
-			MessageId: *startMessage.Cart.MessageId,
-		})
-
-		startMessage.Cart.MessageId = nil
+		h.removePreviousMessage(&startMessage, out)
 	}
 
-	h.startMessage(msgIn, startMessage, out)
+	startMsg := response.NewMessage(startMessage.Msg)
 
-	cartMsg, err := message.OpenCart(msgIn.Ctx, out, startMessage.UserCart)
+	startKeyboard := &keyboard.GridKeyboard{}
+	startKeyboard.AddButton(keyboard.NewButton(scripts.Get(msgIn.Ctx, scripts.OpenClearMenu), ""))
+	startKeyboard.SetIsReplyKeyboard(true)
+	startMsg.Keys = startKeyboard
+
+	err = out.SendMessage(startMsg)
 	if err != nil {
-		return errors.Wrap(err, "open cart error")
+		return errors.Wrap(err)
+	}
+
+	cartMsg := message.OpenCart(msgIn.Ctx, startMessage.UserCart)
+	err = out.SendMessage(cartMsg)
+	if err != nil {
+		return errors.Wrap(err)
 	}
 
 	err = h.cartSrv.SyncCartMessage(msgIn.Ctx, startMessage.UserCart, cartMsg)
 	if err != nil {
-		return out.SendMessage(response.NewMessage(err.Error()))
+		return errors.Wrap(err)
 	}
-
-	return out.SendMessage(&response.DeleteMessage{
-		ChatId:    msgIn.Chat.ID,
-		MessageId: int64(msgIn.MessageID),
-	})
+	return nil
 }
 
-func (h *Handler) startMessage(in *model.MessageIn, payload domain.StartMessagePayload, out tgapi.Chat) {
-	cartId := strconv.Itoa(int(payload.Cart.ID))
-
-	msg := response.NewMessage(payload.Msg)
-
-	keyboardReply := keyboard.Keyboard{IsReplyKeyboard: true}
-	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.OpenSetting), commands.CartSetting+" "+cartId)
-	keyboardReply.AddButton(scripts.Get(in.Ctx, scripts.Clear), commands.ClearMenu+" "+cartId)
-
-	msg.AddKeyboard(keyboardReply)
-
-	err := out.SendMessage(msg)
+func (h *Handler) removePreviousMessage(startMessage *domain.StartMessagePayload, out tgapi.Chat) {
+	err := out.SendMessage(&response.DeleteMessage{
+		ChatId:    startMessage.Cart.ChatId,
+		MessageId: *startMessage.Cart.MessageId,
+	})
 	if err != nil {
-		logrus.Error(err.Error())
+		logrus.Errorf("error deleting previous message (chatID = %d, messageId = %d, %s",
+			startMessage.Cart.ChatId,
+			*startMessage.Cart.MessageId,
+			err.Error())
+		return
 	}
+
+	startMessage.Cart.MessageId = nil
 }
 
 func (h *Handler) GetDescription() string {

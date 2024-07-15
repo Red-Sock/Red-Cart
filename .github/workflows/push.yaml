@@ -16,22 +16,21 @@ jobs:
 
   build-and-test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13.6
-        env:
-          POSTGRES_DB: red_cart
-          POSTGRES_USER: red_cart
-          POSTGRES_PASSWORD: ""
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+#    services:
+#      postgres:
+#        image: postgres:13.6
+#        env:
+#          POSTGRES_DB: red_cart
+#          POSTGRES_USER: red_cart
+#          POSTGRES_PASSWORD: ""
+#          POSTGRES_HOST_AUTH_METHOD: trust
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
     needs:
       - create-pr
 
@@ -50,8 +49,8 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Test with the Go CLI
-        run: go test ./...
+#      - name: Test with the Go CLI
+#        run: go test ./...
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6

@@ -11,15 +11,15 @@ const (
 type ctxLangKeyType string
 
 func extractScript(ctx context.Context) (resp map[PhraseKey]string) {
+	return scripts[GetLangFromCtx(ctx)]
+}
+
+func GetLangFromCtx(ctx context.Context) lang {
 	v := ctx.Value(ctxLangKey)
 	l, ok := v.(lang)
 	if ok {
-		resp, ok = scripts[l]
+		return l
 	}
 
-	if ok {
-		return resp
-	}
-
-	return scripts[defaultLang]
+	return defaultLang
 }

@@ -44,7 +44,7 @@ func (c *Service) GetCartByChatId(ctx context.Context, chatID int64) (domain.Use
 		return domain.UserCart{}, errors.Wrap(err, "error reading cart for chat")
 	}
 
-	userCart.Cart.Items, err = c.cartData.ListCartItems(ctx, userCart.Cart.ID)
+	userCart.Cart.Items, err = c.cartData.ListCartItems(ctx, userCart.Cart.Id)
 	if err != nil {
 		return domain.UserCart{}, errors.Wrap(err, "error reading cart items")
 	}
@@ -72,7 +72,7 @@ func (c *Service) Add(ctx context.Context, items []domain.Item, cartID int64, us
 		return domain.UserCart{}, errors.Wrap(err, "error getting actual cart items")
 	}
 
-	return *cart, errors.Wrap(err)
+	return *cart, nil
 }
 
 func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCart, error) {
@@ -95,7 +95,7 @@ func (c *Service) GetCartById(ctx context.Context, cartID int64) (domain.UserCar
 
 func (c *Service) AwaitNameChange(ctx context.Context, cartID int64, item domain.Item) (err error) {
 	req := domain.Cart{
-		ID:    cartID,
+		Id:    cartID,
 		State: domain.CartStateEditingItemName,
 	}
 
@@ -114,7 +114,7 @@ func (c *Service) AwaitNameChange(ctx context.Context, cartID int64, item domain
 
 func (c *Service) AwaitItemsAdded(ctx context.Context, cartID int64) (err error) {
 	req := domain.Cart{
-		ID:    cartID,
+		Id:    cartID,
 		State: domain.CartStateAdding,
 	}
 
