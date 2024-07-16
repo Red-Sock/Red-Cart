@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/Red-Sock/go_tg v0.0.18
+	github.com/Red-Sock/go_tg v0.0.19
 	github.com/Red-Sock/trace-errors v0.0.7
 	github.com/godverv/matreshka v0.0.28
 	github.com/jackc/pgx/v5 v5.6.0
@@ -44,5 +44,3 @@ require (
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 )
-
-replace github.com/Red-Sock/go_tg => /Users/alexbukov/Yandex.Disk.localized/проекты/redsock/go_tg

@@ -2,6 +2,8 @@ github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8
 github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA400rg+riTZj10=
 github.com/Red-Sock/evon v0.0.13 h1:5Z0BryEoe1n6hs6zGScD6t7XE9KRe9W7cv9BIG5Ye5w=
 github.com/Red-Sock/evon v0.0.13/go.mod h1:BSqhsH7BWJu59QFmyzpIc7kqNQkvVi5Gb1MhZMx7mlc=
+github.com/Red-Sock/go_tg v0.0.19 h1:sK00HGV9NGl+DrHhHGfb0WqMQETgOP5LgSHOtrQ/A0I=
+github.com/Red-Sock/go_tg v0.0.19/go.mod h1:zOQ7l6ymmkFEKMVADRTYF7Ed0oGnlBUsH3MDZmnbeH8=
 github.com/Red-Sock/trace-errors v0.0.7 h1:A7vIwa8lfj9rX1rcwyuzuNsw+VJQkuiYl7poUpk0M+o=
 github.com/Red-Sock/trace-errors v0.0.7/go.mod h1:rvIxpJ2M7/XkEnXjXfmQjsaKXYRVGM4TFQ8R5Zo4mSk=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
